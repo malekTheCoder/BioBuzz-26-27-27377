@@ -17,9 +17,11 @@
 
 import java.util.regex.Pattern
 
+apply plugin: 'com.android.application'
+
 android {
 
-    compileSdkVersion 30
+    compileSdk 35
 
     signingConfigs {
         release {
