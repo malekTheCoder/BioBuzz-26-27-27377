@@ -39,7 +39,6 @@ public class v1tele extends LinearOpMode {
                 RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
         imu.initialize(parameters);
-
         waitForStart();
 
         while (opModeIsActive()) {

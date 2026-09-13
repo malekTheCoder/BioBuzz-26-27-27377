@@ -82,7 +82,7 @@ public class RobotActions {
      * Spin up shooter to close-range target velocity, running intake once at speed.
      * Blocking loop for up to 3 seconds.
      */
-    public static Action startShooter(double timeSeconds) {
+    public static Action startShootertype(double timeSeconds) {
         ElapsedTime timer = new ElapsedTime();
         int target = 1540;
         while (timer.seconds() < 3) {
