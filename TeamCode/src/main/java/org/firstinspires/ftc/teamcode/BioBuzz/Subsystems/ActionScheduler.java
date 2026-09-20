@@ -17,6 +17,7 @@ public final class ActionScheduler {
     final Canvas canvas = new Canvas();
 
     private Runnable update = null;
+    private boolean runningBlocking;
 
     public void setUpdate(Runnable update) {
         this.update = update;
@@ -30,6 +31,7 @@ public final class ActionScheduler {
 
     // Won't generate previews
     public void run() {
+        if (runningBlocking) return;
         if (actions.peek() != null) {
             TelemetryPacket packet = new TelemetryPacket();
             packet.fieldOverlay().getOperations().addAll(canvas.getOperations());
@@ -44,22 +46,27 @@ public final class ActionScheduler {
     }
 
     public void runBlocking() {
-        Action currentAction = actions.peek();
-        while (currentAction != null && !Thread.currentThread().isInterrupted()) {
-            TelemetryPacket packet = new TelemetryPacket();
+        runningBlocking = true;
+        try {
+            Action currentAction = actions.peek();
+            while (currentAction != null && !Thread.currentThread().isInterrupted()) {
+                TelemetryPacket packet = new TelemetryPacket();
 
-            packet.fieldOverlay().getOperations().addAll(canvas.getOperations());
+                packet.fieldOverlay().getOperations().addAll(canvas.getOperations());
 
-            boolean running = currentAction.run(packet);
-            dash.sendTelemetryPacket(packet);
+                boolean running = currentAction.run(packet);
+                dash.sendTelemetryPacket(packet);
 
-            update.run();
+                update.run();
 
-            if (!running && actions.peek() != null) {
-                actions.remove();
+                if (!running && actions.peek() != null) {
+                    actions.remove();
+                }
+
+                currentAction = actions.peek();
             }
-
-            currentAction = actions.peek();
+        } finally {
+            runningBlocking = false;
         }
     }
 }

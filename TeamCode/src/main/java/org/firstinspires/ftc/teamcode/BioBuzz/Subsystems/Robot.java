@@ -8,9 +8,9 @@ public final class Robot {
 
     public final Follower drivetrain;
     public final Shooter shooter;
-
     public final Intake intake;
 
+    public final Turret turret;
 
     public final BulkReader bulkReader;
     public final ActionScheduler actionScheduler;
@@ -26,16 +26,19 @@ public final class Robot {
         intake = new Intake(hardwareMap); // 2 intake wheel
 
         shooter = new Shooter(hardwareMap); // shooter wheel (2 motors)
+        turret = new Turret(hardwareMap, drivetrain);
+        turret.stow();
     }
 
     public void run() {
         bulkReader.bulkRead();
         drivetrain.update();
+        turret.run();
         actionScheduler.run();
     }
 
     public void printTelemetry() {
-        // add subsystem telemetry here later
+        turret.printTelemetry();
     }
 
 

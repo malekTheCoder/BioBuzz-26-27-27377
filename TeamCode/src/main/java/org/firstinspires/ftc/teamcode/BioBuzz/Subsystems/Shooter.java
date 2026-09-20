@@ -9,63 +9,95 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 @Config
 public class Shooter {
 
-    private MotorEx shooter;
-    private MotorEx followerShooter;
+    // one flywheel motor for each turret
+    private MotorEx leftFlywheel;
+    private MotorEx rightFlywheel;
 
-    // Tune these in FTC Dashboard
+    // pid values for later when we start velocity control
     public static double kP = 50.0;
     public static double kI = 0.0;
     public static double kD = 0.0;
     public static double kF = 12.0;
 
     public Shooter(HardwareMap hardwareMap) {
-        shooter         = new MotorEx(hardwareMap, "leftShooterMotor",  Motor.GoBILDA.BARE);
-        followerShooter = new MotorEx(hardwareMap, "rightShooterMotor", Motor.GoBILDA.BARE);
+        // names have to match robot config
+        leftFlywheel = new MotorEx(hardwareMap, "leftShooterMotor", Motor.GoBILDA.BARE);
+        rightFlywheel = new MotorEx(hardwareMap, "rightShooterMotor", Motor.GoBILDA.BARE);
 
-        followerShooter.motor.setDirection(DcMotorSimple.Direction.FORWARD);
-        shooter.motor.setDirection(DcMotorSimple.Direction.REVERSE);
+        // flip one of these later if its wheel spins the wrong way
+        leftFlywheel.motor.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightFlywheel.motor.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        shooter.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
-        followerShooter.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
+        // float lets the flywheels coast down instead of braking hard
+        leftFlywheel.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
+        rightFlywheel.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
 
-        shooter.resetEncoder();
-        followerShooter.resetEncoder();
+        leftFlywheel.resetEncoder();
+        rightFlywheel.resetEncoder();
 
-        // Set velocity PIDF on both motors
-        updatePIDF();
+        // velocity controller is saved for later right now we use power
+//        updatePIDF();
     }
 
-    // Called from TeleOp every loop so dashboard changes apply live
+    // velocity setup for later this is not called right now
     public void updatePIDF() {
-        shooter.motorEx.setPIDFCoefficients(
+        leftFlywheel.motorEx.setPIDFCoefficients(
                 com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER,
                 new com.qualcomm.robotcore.hardware.PIDFCoefficients(kP, kI, kD, kF)
         );
-        followerShooter.motorEx.setPIDFCoefficients(
+        rightFlywheel.motorEx.setPIDFCoefficients(
                 com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER,
                 new com.qualcomm.robotcore.hardware.PIDFCoefficients(kP, kI, kD, kF)
         );
     }
 
-    // Raw power — used in auto
+    // raw power controls used right now
+    public void setPower(double power) {
+        // same raw power for both flywheels
+        setPower(power, power);
+    }
+
+    // each turret has its own flywheel
+    public void setPower(double leftPower, double rightPower) {
+        // separate raw power for each turret flywheel
+        leftFlywheel.set(leftPower);
+        rightFlywheel.set(rightPower);
+    }
+
+    public void setLeftPower(double power) {
+        leftFlywheel.set(power);
+    }
+
+    public void setRightPower(double power) {
+        rightFlywheel.set(power);
+    }
+
     public void shootArtifacts() {
-        shooter.set(1);
-        followerShooter.set(1);
+        setPower(1);
     }
 
-    // Variable velocity — used in TeleOp with distance-based control
+    // velocity control for later this is not used by the test
     public void setVelocity(double velocity) {
-        shooter.setVelocity(velocity);
-        followerShooter.setVelocity(velocity);
+        leftFlywheel.setVelocity(velocity);
+        rightFlywheel.setVelocity(velocity);
     }
 
     public double getVelocity() {
-        // Average both motors for telemetry
-        return (shooter.getVelocity() + followerShooter.getVelocity()) / 2.0;
+        // average velocity is only for telemetry right now
+        return (leftFlywheel.getVelocity() + rightFlywheel.getVelocity()) / 2.0;
+    }
+
+    public double getLeftVelocity() {
+        // velocity is telemetry only it does not control the motor yet
+        return leftFlywheel.getVelocity();
+    }
+
+    public double getRightVelocity() {
+        return rightFlywheel.getVelocity();
     }
 
     public void stop() {
-        shooter.set(0);
-        followerShooter.set(0);
+        // shut off both motors
+        setPower(0);
     }
 }
