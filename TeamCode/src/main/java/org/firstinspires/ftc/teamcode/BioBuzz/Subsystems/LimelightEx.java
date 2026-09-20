@@ -73,6 +73,11 @@ public class LimelightEx {
         return limelight;
     }
 
+    public boolean hasResult() {
+        boolean hasTarget = limelight.getLatestResult().isValid();
+        return hasTarget;
+    }
+
     public void printTelemetry() {
 
         telemetry.addLine("LIMELIGHT");
