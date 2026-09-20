@@ -444,6 +444,6 @@ public class Turret extends Subsystem<Turret.TurretStates> {
         ServoTarget(double position, boolean reachable) {
             this.position = position;
             this.reachable = reachable;
-        }
+        }    /a
     }
 }
