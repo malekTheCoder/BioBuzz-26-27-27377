@@ -70,8 +70,6 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     // values the turret keeps track of every loop
     private TurretStates currentState = TurretStates.ODOM_TRACKING;
     private Pose goal;
-    private Pose leftTurretPose = new Pose();
-    private Pose rightTurretPose = new Pose();
 
     private double leftTargetAngle;
     private double rightTargetAngle;
@@ -83,7 +81,6 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     private boolean leftTargetReachable;
     private boolean rightTargetReachable;
     private boolean lastAllianceRed;
-    private boolean customGoal;
     private boolean targetingTopHalf = true;
     private long lastMeaningfulTargetChangeNanos = System.nanoTime();
 
@@ -99,9 +96,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     @Override
     public void set(TurretStates state) {
         currentState = state;
-        leftSettledReferencePosition = Double.NaN;
-        rightSettledReferencePosition = Double.NaN;
-        lastMeaningfulTargetChangeNanos = System.nanoTime();
+        resetSettleTimer();
     }
 
     @Override
@@ -115,39 +110,16 @@ public class Turret extends Subsystem<Turret.TurretStates> {
 
     public void setAlliance(boolean isRed) {
         Common.isRed = isRed;
-        customGoal = false;
         targetingTopHalf = drivetrain.getPose().getY() >= Common.FIELD_MIDLINE_Y;
         goal = Common.getGoalForAlliance(isRed, targetingTopHalf);
         lastAllianceRed = isRed;
         resetSettleTimer();
     }
 
-    public void setGoal(Pose newGoal) {
-        if (newGoal == null) {
-            throw new IllegalArgumentException("Turret goal cannot be nothing");
-        }
-        goal = new Pose(newGoal.getX(), newGoal.getY(), newGoal.getHeading());
-        customGoal = true;
-        lastAllianceRed = Common.isRed;
-        resetSettleTimer();
-    }
-
-    public Pose getGoal() {
-        return goal;
-    }
-
     public double getDistance() {
         // distance is used later for shooter tuning
         Pose robotPose = drivetrain.getPose();
         return Math.hypot(goal.getX() - robotPose.getX(), goal.getY() - robotPose.getY());
-    }
-
-    public double getLeftDistance() {
-        return Math.hypot(goal.getX() - leftTurretPose.getX(), goal.getY() - leftTurretPose.getY());
-    }
-
-    public double getRightDistance() {
-        return Math.hypot(goal.getX() - rightTurretPose.getX(), goal.getY() - rightTurretPose.getY());
     }
 
     public double getLeftTargetAngle() {
@@ -164,14 +136,6 @@ public class Turret extends Subsystem<Turret.TurretStates> {
 
     public double getRightServoPosition() {
         return rightCommand;
-    }
-
-    public boolean isLeftTargetReachable() {
-        return leftTargetReachable;
-    }
-
-    public boolean isRightTargetReachable() {
-        return rightTargetReachable;
     }
 
     // gets each turrets real field position
@@ -218,37 +182,8 @@ public class Turret extends Subsystem<Turret.TurretStates> {
 
     // manual angles relative to the robot
     public void setManualAngles(double leftAngleDegrees, double rightAngleDegrees) {
-        // converts each angle into the servo position for that turret
         currentState = TurretStates.MANUAL;
-        leftTargetAngle = normalizeDegrees(leftAngleDegrees);
-        rightTargetAngle = normalizeDegrees(rightAngleDegrees);
-
-        ServoTarget leftTarget = angleToServoPosition(
-                leftTargetAngle,
-                LEFT_CENTER_ANGLE_DEGREES,
-                LEFT_CENTER_POSITION,
-                LEFT_TRAVEL_DEGREES,
-                LEFT_REVERSED,
-                LEFT_MIN_POSITION,
-                LEFT_MAX_POSITION,
-                LEFT_MAX_CLOCKWISE_DEGREES,
-                LEFT_MAX_COUNTERCLOCKWISE_DEGREES
-        );
-        ServoTarget rightTarget = angleToServoPosition(
-                rightTargetAngle,
-                RIGHT_CENTER_ANGLE_DEGREES,
-                RIGHT_CENTER_POSITION,
-                RIGHT_TRAVEL_DEGREES,
-                RIGHT_REVERSED,
-                RIGHT_MIN_POSITION,
-                RIGHT_MAX_POSITION,
-                RIGHT_MAX_CLOCKWISE_DEGREES,
-                RIGHT_MAX_COUNTERCLOCKWISE_DEGREES
-        );
-
-        leftTargetReachable = leftTarget.reachable;
-        rightTargetReachable = rightTarget.reachable;
-        commandServoPositions(leftTarget.position, rightTarget.position);
+        aimAtAngles(leftAngleDegrees, rightAngleDegrees);
     }
 
     public void resumeTracking() {
@@ -284,15 +219,19 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     private void updateTracking() {
         Pose robotPose = drivetrain.getPose();
         selectGoal(robotPose.getY());
-        leftTurretPose = calculateTurretPosition(robotPose, LEFT_OFFSET_X, LEFT_OFFSET_Y);
-        rightTurretPose = calculateTurretPosition(robotPose, RIGHT_OFFSET_X, RIGHT_OFFSET_Y);
+        Pose leftPose = calculateTurretPosition(robotPose, LEFT_OFFSET_X, LEFT_OFFSET_Y);
+        Pose rightPose = calculateTurretPosition(robotPose, RIGHT_OFFSET_X, RIGHT_OFFSET_Y);
 
         double robotHeadingDegrees = Math.toDegrees(robotPose.getHeading());
-        double newLeftTarget = normalizeDegrees(calculateAngleToGoal(leftTurretPose) - robotHeadingDegrees);
-        double newRightTarget = normalizeDegrees(calculateAngleToGoal(rightTurretPose) - robotHeadingDegrees);
+        aimAtAngles(
+                calculateAngleToGoal(leftPose) - robotHeadingDegrees,
+                calculateAngleToGoal(rightPose) - robotHeadingDegrees
+        );
+    }
 
-        leftTargetAngle = newLeftTarget;
-        rightTargetAngle = newRightTarget;
+    private void aimAtAngles(double leftAngle, double rightAngle) {
+        leftTargetAngle = normalizeDegrees(leftAngle);
+        rightTargetAngle = normalizeDegrees(rightAngle);
 
         ServoTarget leftTarget = angleToServoPosition(
                 leftTargetAngle,
@@ -335,7 +274,6 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     }
 
     private void selectGoal(double robotY) {
-        if (customGoal) return;
         boolean topHalf = robotY >= Common.FIELD_MIDLINE_Y;
         if (topHalf != targetingTopHalf) {
             resetSettleTimer();
@@ -425,7 +363,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
         Common.dashTelemetry.addLine("Diddy TURRET");
         Common.dashTelemetry.addData("State", currentState);
         Common.dashTelemetry.addData("Alliance", Common.isRed ? "RED" : "BLUE");
-        Common.dashTelemetry.addData("Goal half", customGoal ? "CUSTOM" : targetingTopHalf ? "TOP" : "BOTTOM");
+        Common.dashTelemetry.addData("Goal half", targetingTopHalf ? "TOP" : "BOTTOM");
         Common.dashTelemetry.addData("Goal", "(%.1f, %.1f)", goal.getX(), goal.getY());
         Common.dashTelemetry.addData("Distance", "%.1f in", getDistance());
         Common.dashTelemetry.addData("Left angle / servo", "%.1f deg / %.3f",
