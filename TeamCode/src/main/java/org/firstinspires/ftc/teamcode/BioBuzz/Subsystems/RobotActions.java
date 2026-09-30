@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode.BioBuzz.Subsystems;
 
 import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.SequentialAction;
@@ -80,44 +83,48 @@ public class RobotActions {
     // ── SHOOTER ───────────────────────────────────────────────────────────
     /**
      * Spin up shooter to close-range target velocity, running intake once at speed.
-     * Blocking loop for up to 3 seconds.
+     * Runs for 3 seconds once the action starts. timeSeconds is currently unused.
      */
     public static Action startShooter(double timeSeconds) {
-        ElapsedTime timer = new ElapsedTime();
-        int target = 1540;
-        while (timer.seconds() < 3) {
-            robot.bulkReader.bulkRead();
-            double currentVelo = Math.abs(robot.shooter.getVelocity());
-
-            if (currentVelo < target) {
-                robot.shooter.setVelocity(target);
-            } else {
-                robot.shooter.stop();
-            }
-
-            Common.dashTelemetry.addData("currentVelo", currentVelo);
-            Common.dashTelemetry.update();
-
-            if (Math.abs(currentVelo - target) < 30) {
-                robot.intake.intakeArtifacts(1);
-            }
-        }
-        robot.shooter.stop();
-        return new SequentialAction();
+        return new ShooterAction(1540, 3);
     }
 
     /**
      * Far-range version — higher target velocity, longer spin-up window.
+     * Runs for 4 seconds once the action starts. timeSeconds is currently unused.
      */
     public static Action startShooterFar(double timeSeconds) {
-        ElapsedTime timer = new ElapsedTime();
-        int target = 2300;
-        while (timer.seconds() < 4) {
-            robot.bulkReader.bulkRead();
-            double currentVelo = Math.abs(robot.shooter.getVelocity());
+        return new ShooterAction(2300, 4);
+    }
+
+    // Does one loop of shooter control per run() call, so it can be
+    // scheduled inside Sequential/Parallel actions.
+    private static class ShooterAction implements Action {
+        private final double target;
+        private final double durationSeconds;
+        private ElapsedTime timer;
+
+        ShooterAction(double target, double durationSeconds) {
+            this.target = target;
+            this.durationSeconds = durationSeconds;
+        }
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket packet) {
+            // Start the timer on the first run, not when the action is built
+            if (timer == null) timer = new ElapsedTime();
+
+            if (timer.seconds() >= durationSeconds) {
+                robot.shooter.stop();
+                return false;
+            }
+
+            double currentVelo = (Math.abs(robot.shooter.getLeftVelocity())
+                    + Math.abs(robot.shooter.getRightVelocity())) / 2;
 
             if (currentVelo < target) {
-                robot.shooter.setVelocity(target);
+                robot.shooter.setLeftVelocity(target);
+                robot.shooter.setRightVelocity(target);
             } else {
                 robot.shooter.stop();
             }
@@ -128,9 +135,8 @@ public class RobotActions {
             if (Math.abs(currentVelo - target) < 30) {
                 robot.intake.intakeArtifacts(1);
             }
+            return true;
         }
-        robot.shooter.stop();
-        return new SequentialAction();
     }
 
     // ── STOP EVERYTHING ───────────────────────────────────────────────────

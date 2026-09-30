@@ -29,7 +29,7 @@ public class PracticeAutoPath {
         this.f = f;
     }
 
-    public double mirrorAngleRad(double angle) {
+    public double mirrorAngleRad(double angle){
         return Math.PI - angle;
     }
     public static boolean isPathRed = true;
