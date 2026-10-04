@@ -16,10 +16,10 @@ import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.LimelightEx;
 public class v1tele extends LinearOpMode {
 
     // --- Auto-intake tuning ---
-    private static final double TURN_KP = 0.02;           // make negative if it turns away from the ball
+    private static final double TURN_KP = -0.02;           // make negative if it turns away from the ball
     private static final double MAX_TURN = 0.4;
     private static final double CLOSE_AREA = 8.0;         // set from "ball ta" telemetry at pickup distance
-    private static final double APPROACH_SPEED = 0.35;
+    private static final double APPROACH_SPEED = 0.80;
     private static final double APPROACH_DIRECTION = -1;  // 1 = forward, -1 = reverse
     private static final double ALIGN_RANGE_DEG = 15.0;   // ball must be within this many degrees to drive at it
 
