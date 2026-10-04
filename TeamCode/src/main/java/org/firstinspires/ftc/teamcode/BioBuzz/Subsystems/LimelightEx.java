@@ -23,12 +23,19 @@ public class LimelightEx {
     public static double HEADING_OFFSET = 270.0;
     public static double MAX_RELOCALIZE_JUMP_INCHES = 24.0;
 
+    // Pipeline numbers (must match the Limelight web UI)
+    public static int PIPELINE_APRILTAG = 0;
+    public static int PIPELINE_POLLEN = 3;
+    public static int PIPELINE_NECTAR_BLUE = 4;
+    public static int PIPELINE_NECTAR_RED = 5;
+
     private static final double INCHES_PER_METER = 39.3701;
     private static final double FIELD_CENTER_INCHES = 72.0;
 
     private final Limelight3A limelight;
     private LLResult result;
     private Pose latestPose;
+    private int currentPipeline = -1;
 
     public LimelightEx(Limelight3A limelight) {
         this.limelight = limelight;
@@ -54,6 +61,34 @@ public class LimelightEx {
         return result != null && result.isValid()
                 ? result.getDetectorResults()
                 : Collections.emptyList();
+    }
+
+    /** Only switches when needed so we don't spam the camera. */
+    public void setPipeline(int index) {
+        if (index != currentPipeline) {
+            limelight.pipelineSwitch(index);
+            currentPipeline = index;
+        }
+    }
+
+    /**
+     * Returns the biggest (closest) ball from the given pipeline, or null.
+     * Ignores results still coming from the previous pipeline right after a switch.
+     */
+    public LLResultTypes.ColorResult getBestBall(int pipelineIndex) {
+        if (result == null || !result.isValid()
+                || result.getPipelineIndex() != pipelineIndex) {
+            return null;
+        }
+        LLResultTypes.ColorResult best = null;
+        for (LLResultTypes.ColorResult c : result.getColorResults()) {
+            if (best == null || c.getTargetArea() > best.getTargetArea()) best = c;
+        }
+        return best;
+    }
+
+    public int getBallCount() {
+        return getColorResult().size();
     }
 
     /**

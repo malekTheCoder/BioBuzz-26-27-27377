@@ -1,148 +1,65 @@
-//package org.firstinspires.ftc.teamcode.BioBuzz.Auto.Close;
-//
-//import com.pedropathing.follower.Follower;
-//import com.pedropathing.geometry.BezierCurve;
-//import com.pedropathing.geometry.BezierLine;
-//import com.pedropathing.geometry.Pose;
-//import com.pedropathing.paths.PathChain;
-//
-//public class Paths {
-//
-//    private final Follower f;
-//
-//    public PathChain shootPreload;
-//
-//    public PathChain intake3;
-//    public PathChain shoot3;
-//
-//    public PathChain intake6;
-//    public PathChain shoot6;
-//
-//    public PathChain unloadRamp;
-//
-//    public PathChain intake9;
-//    public PathChain shoot9;
-//
-//    public PathChain intakeHuman;
-//
-//    public PathChain shootHuman;
-//
-//
-//    public PathChain intakeExtra1;
-//    public PathChain shootExtra1;
-//    public PathChain intakeExtra2;
-//    public PathChain shootExtra2;
-//    public PathChain intakeExtra3;
-//    public PathChain shootExtra3;
-//
-//    public PathChain leave;
-//
-//    // =============================
-//    // POSES (ALL CENTRALIZED)
-//    // =============================
-//
-//    public static Pose P_START = new Pose(112.094, 138.091);
-//    public static Pose P_SHOOT = new Pose(89.000, 102.000);
-//
-//    // Intake 3
-//    public static Pose P_I3_CP = new Pose(79.512, 85.6);
-//    public static Pose P_I3_END = new Pose(95.550, 85.6);
-//    public static Pose P_I3_WALL = new Pose(124, 85.6);
-//
-//    // Intake 6
-//    public static Pose P_I6_CP = new Pose(73.435, 62.5);
-//    public static Pose P_I6_END = new Pose(96.563, 62.5);
-//    public static Pose P_I6_WALL = new Pose(133, 62.5);
-//
-//    // Ramp
-//    public static Pose P_RAMP_CP = new Pose(92.680, 75.123);
-//    public static Pose P_RAMP_END = new Pose(127.8, 75);
-//
-//    // Intake 9
-//    public static Pose P_I9_CP = new Pose(90, 39);
-//    public static Pose P_I9_END = new Pose(99.264, 39);
-//    public static Pose P_I9_WALL = new Pose(137, 39);
-//    public static Pose P_I9_RETURN = new Pose(99.433, 39);
-//
-//    // Extra balls
-//    public static Pose P_HP_CP1 = new Pose(111.920, 56.783);
-//    public static Pose P_HP_END = new Pose(137.788, 49.329);
-//    public static Pose P_HP_WALL = new Pose(137.807, 6);
-//    public static Pose P_HP_RETURN = new Pose(137.638, 49.348);
-//
-//    public static Pose P_EX_CP1 = new Pose(93.862, 66.851);
-//    public static Pose P_EX_END1 = new Pose(133.027, 60.774);
-//
-//    public static Pose P_EX_CP2 = new Pose(93.862, 66.682);
-//    public static Pose P_EX_END2 = new Pose(133.027, 60.774);
-//
-//    public static Pose P_EX_CP3 = new Pose(94.368, 66.513);
-//    public static Pose P_EX_END3 = new Pose(133.027, 60.605);
-//
-//    // Leave
-//    public static Pose P_LEAVE_END = new Pose(89.135, 80);
-//    public static double H_38 = Math.toRadians(38);
-//    public static double H_0 = Math.toRadians(0);
-//    public static double H_43 = Math.toRadians(43);
-//    public static double H_270 = Math.toRadians(270);
-//
-//    public Paths(Follower follower) {
-//        f = follower;
-//    }
-//
-//    public double mirrorAngleRad(double angle) {
-//        return Math.PI - angle;
-//    }
-//
-//    public static boolean isPathRed = true;
-//
-//    public void mirrorAll() {
-//        P_START = P_START.mirror();
-//        P_SHOOT = P_SHOOT.mirror();
-//
-//        P_I3_CP = P_I3_CP.mirror();
-//        P_I3_END = P_I3_END.mirror();
-//        P_I3_WALL = P_I3_WALL.mirror();
-//
-//        P_I6_CP = P_I6_CP.mirror();
-//        P_I6_END = P_I6_END.mirror();
-//        P_I6_WALL = P_I6_WALL.mirror();
-//
-//        P_RAMP_CP = P_RAMP_CP.mirror();
-//        P_RAMP_END = P_RAMP_END.mirror();
-//
-//        P_I9_CP = P_I9_CP.mirror();
-//        P_I9_END = P_I9_END.mirror();
-//        P_I9_WALL = P_I9_WALL.mirror();
-//        P_I9_RETURN = P_I9_RETURN.mirror();
-//
-//        P_HP_CP1 = P_HP_CP1.mirror();
-//        P_HP_END = P_HP_END.mirror();
-//        P_HP_WALL = P_HP_WALL.mirror();
-//        P_HP_RETURN = P_HP_RETURN.mirror();
-//
-//        P_EX_CP1 = P_EX_CP1.mirror();
-//        P_EX_END1 = P_EX_END1.mirror();
-//
-//        P_EX_CP2 = P_EX_CP2.mirror();
-//        P_EX_END2 = P_EX_END2.mirror();
-//
-//        P_EX_CP3 = P_EX_CP3.mirror();
-//        P_EX_END3 = P_EX_END3.mirror();
-//
-//        P_LEAVE_END = P_LEAVE_END.mirror();
-//
-//        H_0 = mirrorAngleRad(H_0);
-//        H_38 = mirrorAngleRad(H_38);
-//        H_43 = mirrorAngleRad(H_43);
-//        H_270 = mirrorAngleRad(H_270);
-//    }
-//
-//
-//    // =============================
-//    // BUILD ALL PATHS
-//    // =============================
-//
+package org.firstinspires.ftc.teamcode.BioBuzz.Auto.Close;
+
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.PathChain;
+
+public class Paths {
+
+    private final Follower f;
+
+    public PathChain Circle;
+
+
+
+    // =============================
+    // POSES (ALL CENTRALIZED)
+    // =============================
+
+    public static Pose P_START = new Pose(65.35201149425286, 49.62140804597702);
+    public static Pose P_END = new Pose(63.753591954022994, 11.926005747126421);
+
+
+    public static double H_225 = Math.toRadians(225);
+    public static double H_90 = Math.toRadians(90);
+    public static double H_43 = Math.toRadians(43);
+    public static double H_270 = Math.toRadians(270);
+
+    public Paths(Follower follower) {
+        f = follower;
+    }
+
+    public double mirrorAngleRad(double angle) {
+        return Math.PI - angle;
+    }
+
+    public static boolean isPathRed = true;
+
+    public void mirrorAll() {
+        P_START = P_START.mirror();
+        P_END = P_END.mirror();
+
+        H_225 = mirrorAngleRad(H_225);
+        H_90 = mirrorAngleRad(H_90);
+        H_43 = mirrorAngleRad(H_43);
+        H_270 = mirrorAngleRad(H_270);
+    }
+
+
+    // =============================
+    // BUILD ALL PATHS
+    // =============================
+    public void test(){
+        Circle = f.pathBuilder()
+                .addPath(new BezierLine(P_START, P_END))
+                .setLinearHeadingInterpolation(H_90, H_225)
+                 .addPath(new BezierLine(P_END,P_END))
+                .setLinearHeadingInterpolation(H_225, H_90)
+                .build();
+    }
+
 //    public void goalRocketBuild() {
 //        shootPreload = f.pathBuilder()
 //                .addPath(new BezierLine(P_START, P_SHOOT))
@@ -384,4 +301,4 @@
 //                    .setConstantHeadingInterpolation(H_38)
 //                    .build();
 //        }
-//    }
+    }
