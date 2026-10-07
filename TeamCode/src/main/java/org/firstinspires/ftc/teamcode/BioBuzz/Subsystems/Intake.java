@@ -12,7 +12,6 @@ public class Intake {
         intakeMotor.setDirection(DcMotor.Direction.FORWARD);
     }
 
-    // FIXED: Now actually uses the power you pass ingdfs
     public void intakeArtifacts(double power) {
         intakeMotor.setPower(power);
     }

@@ -4,6 +4,7 @@ import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
 
 import androidx.annotation.NonNull;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
@@ -12,6 +13,9 @@ import com.acmerobotics.roadrunner.SleepAction;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.util.function.DoubleSupplier;
+
+@Config
 public class RobotActions {
 
     // ── Goal position for distance calculations ────────────────────────────
@@ -19,6 +23,10 @@ public class RobotActions {
 
     public static void setGoal(Pose goalPose) {
         goal = goalPose;
+    }
+
+    public static Pose getGoal() {
+        return goal;
     }
 
     // ── Distance / velocity constants ──────────────────────────────────────
@@ -29,6 +37,7 @@ public class RobotActions {
     public static double SHOOTER_VELOCITY_MID   = 2400;
     public static double SHOOTER_VELOCITY_FAR   = 2600;
     public static double targetVelo = 1500;
+    public static double FEED_TOLERANCE = 60; // ticks/s from target before the intake feeds
 
     public static double MIN_DISTANCEFAR          = 20.0;
     public static double MID_DISTANCEFAR          = 60.0;
@@ -44,6 +53,15 @@ public class RobotActions {
         double dx = goal.getX() - robotX;
         double dy = goal.getY() - robotY;
         return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    // ── Helper: distance to goal from the limelight, odometry if no tag seen ─
+    public static double LIMELIGHT_DISTANCE_OFFSET = 0.0; // inches from camera to robot center, tune
+
+    public static double getLimelightDistanceToGoal() {
+        double distance = robot.limelight.getGoalDistance();
+        if (distance < 0) return getDistanceToGoal();
+        return distance + LIMELIGHT_DISTANCE_OFFSET;
     }
 
     // ── Velocity mapping ────────────────────────────────────────────────────
@@ -97,15 +115,27 @@ public class RobotActions {
         return new ShooterAction(2300, 4);
     }
 
+    /**
+     * Auto RPM — target velocity comes from the limelight distance to the goal,
+     * recalculated every loop. Runs for timeSeconds once the action starts.
+     */
+    public static Action autoShooter(double timeSeconds) {
+        return new ShooterAction(() -> distanceToShooterVelocity(getLimelightDistanceToGoal()), timeSeconds);
+    }
+
     // Does one loop of shooter control per run() call, so it can be
     // scheduled inside Sequential/Parallel actions.
     private static class ShooterAction implements Action {
-        private final double target;
+        private final DoubleSupplier targetSupplier;
         private final double durationSeconds;
         private ElapsedTime timer;
 
         ShooterAction(double target, double durationSeconds) {
-            this.target = target;
+            this(() -> target, durationSeconds);
+        }
+
+        ShooterAction(DoubleSupplier targetSupplier, double durationSeconds) {
+            this.targetSupplier = targetSupplier;
             this.durationSeconds = durationSeconds;
         }
 
@@ -119,20 +149,20 @@ public class RobotActions {
                 return false;
             }
 
+            double target = targetSupplier.getAsDouble();
+            Common.dashTelemetry.addData("targetVelo", target);
+
             double currentVelo = (Math.abs(robot.shooter.getLeftVelocity())
                     + Math.abs(robot.shooter.getRightVelocity())) / 2;
 
-            if (currentVelo < target) {
-                robot.shooter.setLeftVelocity(target);
-                robot.shooter.setRightVelocity(target);
-            } else {
-                robot.shooter.stop();
-            }
+            // Always command the target; the motors' velocity PIDF holds it
+            robot.shooter.setLeftVelocity(target);
+            robot.shooter.setRightVelocity(target);
 
+            // Robot.printTelemetry() sends these with everything else each loop
             Common.dashTelemetry.addData("currentVelo", currentVelo);
-            Common.dashTelemetry.update();
 
-            if (Math.abs(currentVelo - target) < 30) {
+            if (Math.abs(currentVelo - target) < FEED_TOLERANCE) {
                 robot.intake.intakeArtifacts(1);
             }
             return true;

@@ -25,6 +25,9 @@ public class LimelightEx {
 
     public static double INCHES_PER_METER = 39.3701;
 
+    public static int BLUE_GOAL_ID = 20; // check against the game manual
+    public static int RED_GOAL_ID = 24;
+
     public LimelightEx(Limelight3A limelight) {
         this.limelight = limelight;
         limelight.start();
@@ -67,6 +70,34 @@ public class LimelightEx {
         }
         latestPose = pose;
         return pose;
+    }
+
+    // The goal april tag for our alliance, ignoring the obelisk and the other goal. null if not visible
+    public LLResultTypes.FiducialResult getGoalTag() {
+        if (result == null || !result.isValid()) return null;
+
+        List<LLResultTypes.FiducialResult> tags = result.getFiducialResults();
+        if (tags == null) return null;
+
+        int goalId = Common.isRed ? RED_GOAL_ID : BLUE_GOAL_ID;
+        for (LLResultTypes.FiducialResult tag : tags) {
+            if (tag.getFiducialId() == goalId) return tag;
+        }
+        return null;
+    }
+
+    // Flat distance from the camera to the goal april tag, in inches. -1 if no tag is visible
+    public double getGoalDistance() {
+        LLResultTypes.FiducialResult tag = getGoalTag();
+        if (tag == null) return -1;
+
+        Pose3D tagPose = tag.getTargetPoseCameraSpace();
+        if (tagPose == null) return -1;
+
+        // camera space: x = right, z = forward (meters)
+        double x = tagPose.getPosition().x;
+        double z = tagPose.getPosition().z;
+        return Math.hypot(x, z) * INCHES_PER_METER;
     }
 
     public Limelight3A getLimelight() {

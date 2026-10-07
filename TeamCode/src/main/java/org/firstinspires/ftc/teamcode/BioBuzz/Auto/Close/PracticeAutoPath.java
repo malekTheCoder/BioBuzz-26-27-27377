@@ -29,10 +29,8 @@ public class PracticeAutoPath {
         this.f = f;
     }
 
-    public double mirrorAngleRad(double angle){
-        return Math.PI - angle;
-    }
     public static boolean isPathRed = true;
+    // Pose.mirror() flips x across the field and also mirrors the heading (PI - heading)
     public void mirrorAll() {
         START_POS = START_POS.mirror();
         SHOOT_ONE_POS = SHOOT_ONE_POS.mirror();
@@ -40,23 +38,6 @@ public class PracticeAutoPath {
         INTAKE_POS = INTAKE_POS.mirror();
         SHOOT_TWO_POS = SHOOT_TWO_POS.mirror();
         PARK_POSE = PARK_POSE.mirror();
-
-        double startAngle = mirrorAngleRad(START_POS.getHeading());
-        double shootOneAngle = mirrorAngleRad(SHOOT_ONE_POS.getHeading());
-        double PreGardenAngle = mirrorAngleRad(PRE_INTAKE_POS.getHeading());
-        double gardenAngle = mirrorAngleRad(INTAKE_POS.getHeading());
-        double shootTwoAngle = mirrorAngleRad(SHOOT_TWO_POS.getHeading());
-        double parkAngle = mirrorAngleRad(PARK_POSE.getHeading());
-
-
-
-        START_POS.setHeading(startAngle);
-        SHOOT_ONE_POS.setHeading(shootOneAngle);
-        PRE_INTAKE_POS.setHeading(PreGardenAngle);
-        INTAKE_POS.setHeading(gardenAngle);
-        SHOOT_TWO_POS.setHeading(shootTwoAngle);
-        PARK_POSE.setHeading(parkAngle);
-
     }
     public void goal3Build() {
 

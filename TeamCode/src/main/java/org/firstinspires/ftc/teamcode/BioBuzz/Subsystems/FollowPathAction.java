@@ -50,7 +50,7 @@ public class FollowPathAction implements Action {
             started = true;
         }
 
-        m_follower.update();
+        // follower.update() is called once per loop in Robot.updateHardware()
         Drawing.drawRobot(m_follower.getPose());
 
         return m_follower.isBusy();
