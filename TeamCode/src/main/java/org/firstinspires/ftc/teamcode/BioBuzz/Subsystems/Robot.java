@@ -12,8 +12,6 @@ public final class Robot {
 
     public final Turret turret;
 
-    public final Gate gateServo;
-
     public final BulkReader bulkReader;
     public final ActionScheduler actionScheduler;
 
@@ -27,9 +25,7 @@ public final class Robot {
 
         intake = new Intake(hardwareMap); // 2 intake wheel
 
-        shooter = new Shooter(hardwareMap); // gotta change this for shooter thing
-
-        gateServo = new Gate(hardwareMap);
+        shooter = new Shooter(hardwareMap); // shooter wheel (2 motors)
         turret = new Turret(hardwareMap, drivetrain);
         turret.stow();
     }
@@ -38,7 +34,6 @@ public final class Robot {
         bulkReader.bulkRead();
         drivetrain.update();
         turret.run();
-        shooter.update();
         actionScheduler.run();
     }
 
