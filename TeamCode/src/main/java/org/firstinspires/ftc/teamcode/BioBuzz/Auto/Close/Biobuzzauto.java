@@ -1,82 +1,123 @@
-//package org.firstinspires.ftc.teamcode.BioBuzz.Auto.Close;
-//
-//import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
-//
-//import com.acmerobotics.roadrunner.InstantAction;
-//import com.acmerobotics.roadrunner.ParallelAction;
-//import com.acmerobotics.roadrunner.SequentialAction;
-//import com.pedropathing.follower.Follower;
-//import com.pedropathing.geometry.Pose;
-//import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-//
-//import org.firstinspires.ftc.teamcode.BioBuzz.Auto.AbstractAuto;
-//import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Actions;
-//import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common;
-//import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.FollowPathAction;
-//import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions;
-//
-//@Autonomous (name = "21BallClose")
-//public class Ilove21balls extends AbstractAuto {
-//    private Follower f;
-//    private Paths path;
-//    @Override
-//    protected Pose getStartPose() {
-//        return Paths.P_START;
-//    }
-//
-//
-//    @Override
-//    protected void onInit() {
-//        f = robot.drivetrain;
-//        path = new Paths(f);
-//
-//        if (Common.isRed != Paths.isPathRed) {
-//            Paths.isPathRed = !Paths.isPathRed;
-//            path.mirrorAll();
-//        }
-//
-//        // Tell RobotActions which goal to use for distance calculations
-//        RobotActions.setGoal(Common.isRed ? new Pose(136, 136) : new Pose(136, 136).mirror());
-//
-//        path.goal21Build();
-//    }
-//
-//    @Override
-//    protected void onRun() {
-//        shootPreload();
-//
-////        cycle6();
-////        cycle3();
-////        unloadRamp();
-////        cycle9();
-////        Human();
-////        extraOne();
-////        extraTwo();
+package org.firstinspires.ftc.teamcode.BioBuzz.Auto.Close;
+
+import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
+
+import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+
+import org.firstinspires.ftc.teamcode.BioBuzz.Auto.AbstractAuto;
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Actions;
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common;
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.FollowPathAction;
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Robot;
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions;
+
+@Autonomous (name = "BioV1Auto")
+public class Biobuzzauto extends AbstractAuto {
+    private Follower f;
+    private Paths path;
+    @Override
+    protected Pose getStartPose() {
+        return Paths.P_START;
+    }
 
 
-////        extraThree();
-//    }
-//
-//    private void shootPreload() {
+    @Override
+    protected void onInit() {
+        f = robot.drivetrain;
+        path = new Paths(f);
+
+        if (Common.isRed != Paths.isPathRed) {
+            Paths.isPathRed = !Paths.isPathRed;
+            path.mirrorAll();
+        }
+
+        path.originalshot();   // builds firstShot, gardenCollect, gardenIntake, gardenReturn
+    }
+
+    @Override
+    protected void onRun() {
+        shootPreload();
+        cycle4();
+    }
+
+    private void shootPreload () {
+        robot.actionScheduler.addAction(
+                new SequentialAction(
+                        new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(1)),
+                                new InstantAction(() -> robot.gateServo.gateMovement(false)),
+                                RobotActions.enableShooter(),
+                                RobotActions.startTurretTracking(),
+
+                                new FollowPathAction(f, path.firstShot, true)
+                        ),
+                        new ParallelAction(
+                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
+                                RobotActions.waitForShooter()
+                        ),
+                        RobotActions.openGateFor(1.0)
+                        // change this to however long we want to keep gate open
+                )
+        );
+        robot.actionScheduler.runBlocking();
+    }
+
+    private void cycle4() {
+        robot.actionScheduler.addAction(
+                new SequentialAction(
+                        new ParallelAction(
+                                new FollowPathAction(f, path.gardenCollect, true),
+                                new InstantAction(() -> f.setMaxPower(1)),
+                                RobotActions.disableShooter(),
+                                RobotActions.startTurretTracking()
+                        ),
+                        new ParallelAction(
+                                new FollowPathAction(f, path.gardenIntake, false),
+                                new InstantAction(() -> f.setMaxPower(.6)),
+                                RobotActions.intakeAction(1,5)
+                        ),
+                        new ParallelAction(
+                                new FollowPathAction(f, path.gardenShot, true),
+                                new InstantAction(() -> f.setMaxPower(.9)),
+                                RobotActions.enableShooter()
+                                //RobotActions.startTurretTracking()
+                        ),
+                        new ParallelAction(
+                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
+                                RobotActions.waitForShooter()
+                        ),
+                        RobotActions.openGateFor(1.0)
+
+                )
+        );
+        robot.actionScheduler.runBlocking();
+    }
+
+    //   private void shootPreload() {
 //        robot.actionScheduler.addAction(
 //                new SequentialAction(
 //                        new InstantAction(() -> robot.gateServo.open()),
 //                        new InstantAction(()-> f.setMaxPower(1)),
 //                        new FollowPathAction(f,path.shootPreload,true),
 //                        new InstantAction(() -> RobotActions.startShooter(0))
-//                       // new InstantAction(() -> RobotActions.intakeLoaderAction(1,1.5)),
-//                        )
+//                        // new InstantAction(() -> RobotActions.intakeLoaderAction(1,1.5)),
+//                )
 //
-//            //    new InstantAction(() -> RobotActions.intakeLoaderAction(1,1.5)),
-//              //  new InstantAction(()-> f.setMaxPower(1))
+//                //    new InstantAction(() -> RobotActions.intakeLoaderAction(1,1.5)),
+//                //  new InstantAction(()-> f.setMaxPower(1))
 //
 //
 //
 //        );
 //        robot.actionScheduler.runBlocking();
 //    }
-//
-//    private void cycle6() {
+
+//        private void cycle6() {
 //        path.shoot6.getPath(0).setBrakingStart(0.8);// fl path  ppr gate open and shooter
 //        path.shoot6.getPath(0).setBrakingStrength(0.8);
 //        robot.actionScheduler.addAction(
@@ -285,4 +326,4 @@
 //        );
 //        robot.actionScheduler.runBlocking();
 //    }
-//}
+}

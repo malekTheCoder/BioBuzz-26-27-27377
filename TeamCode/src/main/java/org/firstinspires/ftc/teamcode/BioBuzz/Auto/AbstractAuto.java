@@ -12,6 +12,7 @@ import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
 
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Robot;
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions;
 
 
 public abstract class AbstractAuto extends LinearOpMode {
@@ -27,6 +28,10 @@ public abstract class AbstractAuto extends LinearOpMode {
         robot.actionScheduler.setUpdate(this::update);
 
         configure();
+
+        // set the goal after we pick red or blue
+        robot.turret.setAlliance();
+        RobotActions.setGoal(Common.getAllianceGoal());
 
         onInit();
 

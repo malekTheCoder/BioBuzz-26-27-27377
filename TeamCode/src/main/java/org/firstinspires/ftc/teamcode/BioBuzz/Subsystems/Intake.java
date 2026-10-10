@@ -13,7 +13,7 @@ public class Intake {
     }
 
     // FIXED: Now actually uses the power you pass ingdfs
-    public void intakeArtifacts(double power) {
+    public void intakeElements(double power) {
         intakeMotor.setPower(power);
     }
 
@@ -22,3 +22,4 @@ public class Intake {
         intakeMotor.setPower(0);
     }
 }
+

@@ -1,4 +1,7 @@
 package org.firstinspires.ftc.teamcode.BioBuzz.Subsystems;
+import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions.getDistanceToGoal;
+import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions.getDistanceToGoal;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
@@ -52,6 +55,7 @@ public class Shooter {
     // Raw power — used in auto
 // Variable velocity — used in TeleOp with distance-based control
     public void setRightVelocity(double velo) {
+
         rightShooter.setVelocity(velo);
     }
     public void setLeftVelocity(double velo) {
@@ -63,19 +67,46 @@ public class Shooter {
     public double getRightVelocity() {
         return rightShooter.getVelocity();
     }
-    public static double calcVelocity(double d) { // d= horizantal distance from goal
+
+    public static double calcVelocity(double distance) { // d= horizantal distance from goal
         double theta = Math.toRadians(LAUNCH_ANGLE);
         double deltaH = GOAL_HEIGHT - LAUNCH_HEIGHT;
         double cos = Math.cos(theta);
 
-        double denom = 2 * cos * cos * (d * Math.tan(theta) - deltaH);
+        double denom = 2 * cos * cos * (distance * Math.tan(theta) - deltaH);
         if (denom <= 0) return -1;                    // too close to reach
 
-        double velo = d * Math.sqrt(9.81 / denom);    // ball exit speed, m/s
+        double velo = distance * Math.sqrt(9.81 / denom);    // ball exit speed, m/s
         double surface = velo / TRANSFER_RATIO;                  // wheel surface speed, m/s
         double rps = surface / (2 * Math.PI * WHEEL_RADIUS);
         return rps * TICKS_PER_REV;                   // ticks/sec
     }
+    public void setVelo() {
+        double distance = getDistanceToGoal() * 0.0254; // conver to meters with .0254
+        double ticks = calcVelocity(distance);
+        if (ticks < 0) { stop(); return; }
+
+        setLeftVelocity(ticks);
+        setRightVelocity(ticks);
+    }
+
+    private double lastTarget = -1; // to check if its on
+    public static double SPEED_TOLERANCE_RPM = 50; // can change
+
+    public boolean atSpeed() {
+        if (lastTarget <= 0) return false;
+        double tol = SPEED_TOLERANCE_RPM * TICKS_PER_REV / 60.0;   // RPM → ticks/sec
+        return Math.abs(getLeftVelocity()  - lastTarget) <= tol
+                && Math.abs(getRightVelocity() - lastTarget) <= tol;
+    }
+    public boolean enabled = false;
+
+    public void update() {
+        if (enabled) {
+            setVelo();
+        }
+    }
+
     public void stop() {
         rightShooter.set(0);
         leftShooter.set(0);
