@@ -33,13 +33,25 @@ public class RobotActions {
     // ── INTAKE ────────────────────────────────────────────────────────────
     public static Action intakeAction(double power, double timeSeconds) {
         return new SequentialAction(
-                new InstantAction(() -> robot.intake.intakeArtifacts(power)),
+                new InstantAction(() -> robot.intake.intakeElements(power)),
                 new SleepAction(timeSeconds),
                 new InstantAction(() -> robot.intake.stop())
         );
     }
+    // --- GATE
 
-
+    public static Action openGate() {return new InstantAction(() -> robot.gateServo.gateMovement(true));
+    }
+    public static Action openGateFor(double seconds) {
+        return new SequentialAction(
+                new InstantAction(() -> robot.gateServo.gateMovement(true)),    // open
+                new SleepAction(seconds),                                       // wait (non-blocking)
+                new InstantAction(() -> robot.gateServo.gateMovement(false))    // close
+        );
+    }
+    public static Action closeGate() {
+        return new InstantAction(() -> robot.gateServo.gateMovement(false));
+    }
     public static Action startTurretTracking() {
         return new InstantAction(() -> robot.turret.resumeTracking());
     }
@@ -59,7 +71,17 @@ public class RobotActions {
     // ── SHOOTER ───────────────────────────────────────────────────────────
     // starts both flywheels with raw power
     public static Action startShooter(double power) {
-        return new InstantAction(() -> robot.shooter.setPower(power));
+        return new InstantAction(() -> robot.shooter.setVelo());
+    }
+    public static Action enableShooter() {
+        return new InstantAction(() -> robot.shooter.enabled = true);
+    }
+
+    public static Action disableShooter() {
+        return new InstantAction(() -> {
+            robot.shooter.enabled = false;
+            robot.shooter.stop();
+        });
     }
 
     /**
@@ -70,23 +92,23 @@ public class RobotActions {
     }
 
     // separate power for each turret flywheel
-    public static Action setFlywheelPower(double leftPower, double rightPower) {
-        // lets auto give each turret flywheel a different raw power
-        return new InstantAction(() -> robot.shooter.setPower(leftPower, rightPower));
-    }
+//    public static Action setFlywheelPower(double leftPower, double rightPower) {
+//        // lets auto give each turret flywheel a different raw power
+//        return new InstantAction(() -> robot.shooter.setPower(leftPower, rightPower));
+//    }
 
-    public static Action runFlywheels(
-            double leftPower,
-            double rightPower,
-            double timeSeconds
-    ) {
-        // turns both on waits then shuts both off
-        return new SequentialAction(
-                setFlywheelPower(leftPower, rightPower),
-                new SleepAction(timeSeconds),
-                new InstantAction(() -> robot.shooter.stop())
-        );
-    }
+//    public static Action runFlywheels(
+//            double leftPower,
+//            double rightPower,
+//            double timeSeconds
+//    ) {
+//        // turns both on waits then shuts both off
+//        return new SequentialAction(
+//                setFlywheelPower(leftPower, rightPower),
+//                new SleepAction(timeSeconds),
+//                new InstantAction(() -> robot.shooter.stop())
+//        );
+//    }
 
     // ── STOP EVERYTHING ───────────────────────────────────────────────────
     public static Action stopAll() {

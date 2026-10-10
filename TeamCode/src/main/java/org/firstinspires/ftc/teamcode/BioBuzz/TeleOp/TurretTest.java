@@ -135,7 +135,7 @@ public class TurretTest extends LinearOpMode {
                     0.0,
                     1.0
             );
-            shooter.setPower(leftFlywheelPower, rightFlywheelPower);
+            shooter.setVelo();
 
             printTelemetry(
                     drivetrain,
