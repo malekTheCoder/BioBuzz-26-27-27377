@@ -16,8 +16,12 @@ public class Gate {
         gateServo.setDirection(Servo.Direction.FORWARD);
     }
 
-    public void openGate() {
+    public void openGate(float time) {
         gateServo.setPosition(1);
+        timer.reset();
+        if (timer.seconds() >= time) {
+            gateServo.setPosition(0);
+        }
     }
 
     public void closeGate() {

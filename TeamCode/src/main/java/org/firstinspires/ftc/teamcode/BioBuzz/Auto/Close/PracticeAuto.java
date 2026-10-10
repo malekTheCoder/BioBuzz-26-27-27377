@@ -78,16 +78,11 @@ public class PracticeAuto extends AbstractAuto {
     private void runShootOne() {
 
         robot.actionScheduler.addAction(
-                new SequentialAction(
-                        new ParallelAction(
-                                    new SequentialAction(
-                                            new InstantAction(() -> robot.gate.openGate()),
-                                            new SleepAction(4),
-                                            new InstantAction(() -> robot.gate.closeGate())
-                                    ),
-                                    new Actions.CallbackAction(RobotActions.autoShooter(3), paths.shootOne, 0.2, 0, follower, "Shoot One"),
+                        new SequentialAction(
+                            new Actions.CallbackAction(RobotActions.autoShooter(3),
+                                    paths.shootOne, 0.5, 0, follower, "Shoot One"),
+                                new InstantAction(() -> robot.gate.openGate(4)),
                                 new FollowPathAction(follower, paths.shootOne, true)
-                        )
                 )
         );
 
@@ -120,19 +115,12 @@ public class PracticeAuto extends AbstractAuto {
     private void runShootTwo() {
 
         robot.actionScheduler.addAction(
-                new SequentialAction(
-
-                        // PATH + SHOOTER AT SAME TIME
-                        new ParallelAction(
-                                new SequentialAction(
-                                        new InstantAction(() -> robot.gate.openGate()),
-                                        new SleepAction(4),
-                                        new InstantAction(() -> robot.gate.closeGate())
-                                ),
-                                new Actions.CallbackAction(RobotActions.autoShooter(3), paths.shootTwo, 0.2, 0, follower, "Shoot Two"),
+                        new SequentialAction(
+                                new Actions.CallbackAction(RobotActions.autoShooter(3),
+                                        paths.shootTwo, 0.5, 0, follower, "Shoot Two"),
+                                new InstantAction(() -> robot.gate.openGate(4)),
                                 new FollowPathAction(follower, paths.shootTwo, true)
                         )
-                )
         );
 
         robot.actionScheduler.runBlocking();
