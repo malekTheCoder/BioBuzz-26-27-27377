@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.BioBuzz.Subsystems;
-import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions.getDistanceToGoal;
-import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions.getDistanceToGoal;
+import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
@@ -56,10 +55,12 @@ public class Shooter {
 // Variable velocity — used in TeleOp with distance-based control
     public void setRightVelocity(double velo) {
 
-        rightShooter.setVelocity(velo);
+        rightShooter.motorEx.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightShooter.motorEx.setVelocity(velo);
     }
     public void setLeftVelocity(double velo) {
-        leftShooter.setVelocity(velo);
+        leftShooter.motorEx.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftShooter.motorEx.setVelocity(velo);
     }
     public double getLeftVelocity() {
         return leftShooter.getVelocity();
@@ -82,10 +83,12 @@ public class Shooter {
         return rps * TICKS_PER_REV;                   // ticks/sec
     }
     public void setVelo() {
-        double distance = getDistanceToGoal() * 0.0254; // conver to meters with .0254
+        // Use the same alliance and field-half goal as the turrets.
+        double distance = robot.turret.getDistance() * 0.0254;
         double ticks = calcVelocity(distance);
-        if (ticks < 0) { stop(); return; }
+        if (!Double.isFinite(ticks) || ticks < 0) { stop(); return; }
 
+        lastTarget = ticks; // atSpeed needs the speed we're actually asking for
         setLeftVelocity(ticks);
         setRightVelocity(ticks);
     }
@@ -103,12 +106,25 @@ public class Shooter {
 
     public void update() {
         if (enabled) {
+            updatePIDF();
             setVelo();
         }
     }
 
     public void stop() {
+        enabled = false;
+        lastTarget = -1;
         rightShooter.set(0);
         leftShooter.set(0);
+    }
+
+    // Independent trigger power for the hardware test; no distance calculation.
+    public void setPower(double left, double right) {
+        enabled = false;
+        lastTarget = -1;
+        leftShooter.motorEx.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightShooter.motorEx.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftShooter.motorEx.setPower(left);
+        rightShooter.motorEx.setPower(right);
     }
 }

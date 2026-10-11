@@ -12,11 +12,9 @@ import com.qualcomm.robotcore.util.Range;
 public class Turret extends Subsystem<Turret.TurretStates> {
     public enum TurretStates { IDLE, ODOM_TRACKING, MANUAL }
 
-    // Two continuous rotation servos and one analog encoder drive each turret.
+    // One continuous rotation servo and one analog encoder per turret.
     public static final String LEFT_SERVO_NAME = "leftTurretServo";
-    public static final String LEFT_SECOND_SERVO_NAME = "leftTurretServo2";
     public static final String RIGHT_SERVO_NAME = "rightTurretServo";
-    public static final String RIGHT_SECOND_SERVO_NAME = "rightTurretServo2";
     public static final String LEFT_ENCODER_NAME = "leftTurretEncoder";
     public static final String RIGHT_ENCODER_NAME = "rightTurretEncoder";
 
@@ -30,9 +28,8 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     public static double ENCODER_FULL_TURN_VOLTS = 3.3;
 
     // Tune directions with the gears or belts disconnected first.
-    public static boolean LEFT_SERVO_REVERSED = false, LEFT_SECOND_SERVO_REVERSED = true;
-    public static boolean RIGHT_SERVO_REVERSED = false, RIGHT_SECOND_SERVO_REVERSED = true;
-    public static double LEFT_SECOND_POWER_SCALE = 1.0, RIGHT_SECOND_POWER_SCALE = 1.0;
+    public static boolean LEFT_SERVO_REVERSED = false;
+    public static boolean RIGHT_SERVO_REVERSED = false;
 
     // Start narrow; increase only after checking mechanical and cable clearance.
     public static double LEFT_MAX_CLOCKWISE_DEGREES = 30.0;
@@ -43,7 +40,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     public static double READY_ANGLE_TOLERANCE_DEGREES = 2.0;
     public static double SERVO_SETTLE_TIME_SECONDS = 0.20;
 
-    private final CRServo leftServo, leftSecondServo, rightServo, rightSecondServo;
+    private final CRServo leftServo, rightServo;
     private final AnalogInput leftEncoder, rightEncoder;
     private final Follower drivetrain;
     private TurretStates state = TurretStates.IDLE;
@@ -60,9 +57,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     public Turret(HardwareMap hardwareMap, Follower drivetrain) {
         this.drivetrain = drivetrain;
         leftServo = hardwareMap.get(CRServo.class, LEFT_SERVO_NAME);
-        leftSecondServo = hardwareMap.get(CRServo.class, LEFT_SECOND_SERVO_NAME);
         rightServo = hardwareMap.get(CRServo.class, RIGHT_SERVO_NAME);
-        rightSecondServo = hardwareMap.get(CRServo.class, RIGHT_SECOND_SERVO_NAME);
         leftEncoder = hardwareMap.get(AnalogInput.class, LEFT_ENCODER_NAME);
         rightEncoder = hardwareMap.get(AnalogInput.class, RIGHT_ENCODER_NAME);
         setPower(0, 0);
@@ -72,6 +67,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     @Override public void set(TurretStates newState) {
         state = newState;
         atTargetSinceNanos = 0;
+        leftTargetReachable = rightTargetReachable = false;
         setPower(0, 0);
     }
 
@@ -87,7 +83,9 @@ public class Turret extends Subsystem<Turret.TurretStates> {
 
     public double getDistance() {
         Pose p = drivetrain.getPose();
-        return Math.hypot(goal.getX() - p.getX(), goal.getY() - p.getY());
+        Pose currentGoal = Common.getGoalForAlliance(Common.isRed,
+                p.getY() >= Common.FIELD_MIDLINE_Y);
+        return Math.hypot(currentGoal.getX() - p.getX(), currentGoal.getY() - p.getY());
     }
     public double getLeftTargetAngle() { return leftTargetAngle; }
     public double getRightTargetAngle() { return rightTargetAngle; }
@@ -128,13 +126,15 @@ public class Turret extends Subsystem<Turret.TurretStates> {
 
     private static double readAngle(AnalogInput encoder, double zero, boolean reversed) {
         double volts = encoder.getVoltage();
-        if (!Double.isFinite(volts) || volts < 0.0 || volts > ENCODER_FULL_TURN_VOLTS
+        if (!Double.isFinite(volts) || !Double.isFinite(zero)
+                || !Double.isFinite(ENCODER_FULL_TURN_VOLTS)
+                || volts < 0.0 || volts > ENCODER_FULL_TURN_VOLTS
                 || ENCODER_FULL_TURN_VOLTS <= 0.0) return Double.NaN;
         double angle = (volts - zero) * 360.0 / ENCODER_FULL_TURN_VOLTS;
         return normalizeDegrees(reversed ? -angle : angle);
     }
 
-    // Gamepad sticks give speed to each turret pair.
+    // Gamepad sticks give speed to each turret.
     public void setManualPower(double left, double right) {
         state = TurretStates.MANUAL;
         leftManualPower = Range.clip(left, -MANUAL_MAX_POWER, MANUAL_MAX_POWER);
@@ -156,10 +156,11 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     @Override public void run() {
         if (lastAllianceRed != Common.isRed) setAlliance();
         if (state == TurretStates.ODOM_TRACKING) updateTracking();
-        if (state == TurretStates.IDLE) { setPower(0, 0); return; }
-
+        // Keep reading while stopped so crossing encoder zero doesn't lose a turn.
         double leftAngle = getLeftAngle(), rightAngle = getRightAngle();
-        if (Double.isNaN(leftAngle) || Double.isNaN(rightAngle)) {
+        if (state == TurretStates.IDLE) { setPower(0, 0); return; }
+        if (!Double.isFinite(leftAngle) || !Double.isFinite(rightAngle)
+                || !Double.isFinite(leftTargetAngle) || !Double.isFinite(rightTargetAngle)) {
             leftTargetReachable = rightTargetReachable = false;
             atTargetSinceNanos = 0;
             setPower(0, 0);
@@ -234,11 +235,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
         leftPower = left;
         rightPower = right;
         leftServo.setPower(LEFT_SERVO_REVERSED ? -left : left);
-        leftSecondServo.setPower(Range.clip((LEFT_SECOND_SERVO_REVERSED ? -left : left)
-                * LEFT_SECOND_POWER_SCALE, -1.0, 1.0));
         rightServo.setPower(RIGHT_SERVO_REVERSED ? -right : right);
-        rightSecondServo.setPower(Range.clip((RIGHT_SECOND_SERVO_REVERSED ? -right : right)
-                * RIGHT_SECOND_POWER_SCALE, -1.0, 1.0));
     }
 
     public boolean isReadyToShoot() {

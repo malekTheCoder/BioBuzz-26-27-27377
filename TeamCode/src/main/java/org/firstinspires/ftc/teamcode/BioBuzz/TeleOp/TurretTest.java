@@ -63,7 +63,7 @@ public class TurretTest extends LinearOpMode {
         );
 
         // only makes the hardware needed for this test
-        // test the four CR servos and two analog encoders
+        // test the two CR servos and two analog encoders
         Follower drivetrain = Constants.createFollower(hardwareMap);
         Turret turret = new Turret(hardwareMap, drivetrain);
         Shooter shooter = new Shooter(hardwareMap);
@@ -135,7 +135,7 @@ public class TurretTest extends LinearOpMode {
                     0.0,
                     1.0
             );
-            shooter.setVelo();
+            shooter.setPower(leftFlywheelPower, rightFlywheelPower);
 
             printTelemetry(
                     drivetrain,
@@ -155,13 +155,13 @@ public class TurretTest extends LinearOpMode {
     }
 
     private void readModeButtons(Turret turret) {
-        // A stops both turret pairs
+        // A stops both turrets
         if (gamepad1.a && !lastA) {
             mode = TestMode.STOP;
             turret.stow();
         }
 
-        // B makes each stick directly command one turret pair's speed
+        // B makes each stick directly command one turret's speed
         if (gamepad1.b && !lastB) {
             mode = TestMode.MANUAL_POWER;
         }
@@ -211,11 +211,11 @@ public class TurretTest extends LinearOpMode {
     private void updateTurretControls(Turret turret, double dt) {
         switch (mode) {
             case STOP:
-                // turret.run keeps both pairs stopped
+                // turret.run keeps both turrets stopped
                 break;
 
             case MANUAL_POWER:
-                // letting go of a stick stops that turret pair
+                // letting go of a stick stops that turret
                 turret.setManualPower(-gamepad1.left_stick_y * Turret.MANUAL_MAX_POWER,
                         -gamepad1.right_stick_y * Turret.MANUAL_MAX_POWER);
                 break;

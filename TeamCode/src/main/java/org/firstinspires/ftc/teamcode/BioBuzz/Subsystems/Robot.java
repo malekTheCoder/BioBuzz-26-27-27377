@@ -41,6 +41,7 @@ public final class Robot {
         drivetrain.update();
         turret.run();
         actionScheduler.run();
+        shooter.update(); // enabled distance tracking must run every loop
     }
 
     public void printTelemetry() {

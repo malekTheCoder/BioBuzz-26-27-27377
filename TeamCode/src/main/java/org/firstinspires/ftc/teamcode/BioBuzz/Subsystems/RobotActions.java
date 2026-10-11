@@ -84,6 +84,10 @@ public class RobotActions {
         });
     }
 
+    public static Action waitForShooter() {
+        return new Actions.RunnableAction(() -> !robot.shooter.atSpeed());
+    }
+
     /**
      * Far-range version — higher target velocity, longer spin-up window.
      */
@@ -115,6 +119,7 @@ public class RobotActions {
         return new InstantAction(() -> {
             robot.intake.stop();
             robot.shooter.stop();
+            robot.turret.stow();
         });
     }
 }
