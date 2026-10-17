@@ -12,6 +12,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.NewRobotActions;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Robot;
 
@@ -21,6 +22,7 @@ import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Robot;
     private Follower follower;
     private Timer pathTimer, opModeTimer;
     private Action currentAction; // robot action running alongside the paths
+    private boolean lastA = false; // for the red/blue toggle
     public enum PathState {
         //START POSITION_END POSITION
         //DRIVE > MOVEMENT STATE
@@ -130,11 +132,31 @@ import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Robot;
         follower = robot.drivetrain;
 
         paths = new NewPaths(follower);
-        paths.build();
-        follower.setPose(NewPaths.START);
     }
 
+    // press A during init to pick red or blue
+    @Override
+    public void init_loop() {
+        if (gamepad1.a && !lastA) Common.isRed = !Common.isRed;
+        lastA = gamepad1.a;
+
+        telemetry.addLine("PRESS A TO TOGGLE SIDES");
+        telemetry.addData("IS RED: ", Common.isRed);
+    }
+
+    @Override
     public void start() {
+        // flip poses + headings if the paths are on the other alliance
+        if (Common.isRed != NewPaths.isPathRed) {
+            NewPaths.isPathRed = !NewPaths.isPathRed;
+            paths.mirrorAll();
+        }
+        paths.build();
+        follower.setPose(NewPaths.getStartPose());
+
+        robot.turret.setAlliance();
+        NewRobotActions.setGoal(Common.getAllianceGoal());
+
         opModeTimer.resetTimer();
         setPathState(pathState);
     }

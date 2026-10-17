@@ -8,6 +8,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.BioBuzz.Auto.Close.NewPaths;
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.FollowPathAction;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.NewRobotActions;
 @Autonomous(name = "Simple Auto", group = "Homework")
@@ -17,14 +18,20 @@ public class SimpleAuto extends AbstractAuto {
 
     @Override
     protected Pose getStartPose() {
-        return NewPaths.START;
+        return NewPaths.getStartPose();
     }
 
     @Override
     protected void onInit() {
-        super.onInit();
-
         paths = new NewPaths(robot.drivetrain);
+
+        // flip poses + headings if the paths are on the other alliance
+        if (Common.isRed != NewPaths.isPathRed) {
+            NewPaths.isPathRed = !NewPaths.isPathRed;
+            paths.mirrorAll();
+        }
+
+        super.onInit(); // sets start pose (after mirroring)
         paths.build();
     }
 
