@@ -31,12 +31,12 @@ public class Turret extends Subsystem<Turret.TurretStates> {
 
     // Your tuned encoder test values, shared with the real subsystem.
     public static double KP = 0.02, KD = 0.0005;
-    public static double CONTINUOUS_KD = 0.003; // damp speed relative to a moving target
+    public static double CONTINUOUS_KD = 0.0025; // damp speed relative to a moving target
     public static double CONTINUOUS_KV = 0.002; // power per degree/second of moving target
     // A negative directional kV uses the original shared kV until calibration is saved.
     public static double CONTINUOUS_KS_FORWARD = 0, CONTINUOUS_KV_FORWARD = -1;
     public static double CONTINUOUS_KS_REVERSE = 0, CONTINUOUS_KV_REVERSE = -1;
-    public static double CONTINUOUS_KI = 0.02, CONTINUOUS_MAX_I_POWER = 0.20;
+    public static double CONTINUOUS_KI = 0.0, CONTINUOUS_MAX_I_POWER = 0.20;
     public static double CONTINUOUS_MAX_LAG_DEG = 45.0;
     public static double BRAKE_ZONE_DEG = 20.0;
     public static double MIN_POWER = 0.10, MAX_POWER = 0.5, MANUAL_MAX_POWER = 0.25;
@@ -59,6 +59,8 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     private Pose goal;
     private double leftTargetAngle, leftCommandedAngle, leftManualPower = Double.NaN, leftPower;
     private boolean continuousTracking;
+    private double positionHoldTolerance = Double.NaN;
+    private double positionRestartTolerance = Double.NaN;
     private boolean fullRotation, hasTrackingRoute;
     private boolean leftTargetReachable;
     private double clockwiseTravelLimit = Double.NaN, counterclockwiseTravelLimit = Double.NaN;
@@ -119,11 +121,24 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     public double getLeftAngle() { return control.getAngle(); }
     public double getLeftPower() { return leftPower; }
     public double getLeftSpeed() { return control.getSpeed(); }
+    public double getLeftTargetSpeed() { return control.getTargetSpeed(); }
     public double getLeftTrackingError() { return leftCommandedAngle - control.getAngle(); }
     public boolean isLeftTargetReachable() { return leftTargetReachable; }
     public boolean isLeftControlTripped() { return control.isTripped(); }
     public String getLeftFaultReason() { return control.getFaultReason(); }
     public void setContinuousTracking(boolean enabled) { continuousTracking = enabled; }
+    // Per-instance stationary precision; NaN restores the existing position deadband.
+    public void setPositionHoldTolerance(double stopDegrees, double restartDegrees) {
+        boolean valid = Double.isFinite(stopDegrees) && stopDegrees > 0
+                && Double.isFinite(restartDegrees) && restartDegrees >= stopDegrees;
+        positionHoldTolerance = valid ? stopDegrees : Double.NaN;
+        positionRestartTolerance = valid ? restartDegrees : Double.NaN;
+    }
+    private double readyAngleTolerance() {
+        // Accept the quiet band too, so a settled hold cannot block alignment there.
+        return Double.isFinite(positionRestartTolerance)
+                ? positionRestartTolerance : READY_ANGLE_TOLERANCE_DEGREES;
+    }
     // Opt-in for the unmounted bench turret; normal robot travel remains bounded.
     public void setFullRotation(boolean enabled) {
         if (fullRotation != enabled) hasTrackingRoute = false;
@@ -222,12 +237,12 @@ public class Turret extends Subsystem<Turret.TurretStates> {
                 -clockwise, counterclockwise);
         leftCommandedAngle = target;
         boolean continuous = continuousTracking && state == TurretStates.ODOM_TRACKING;
-        double power = control.powerTo(target, continuous);
+        double power = control.powerTo(target, continuous, positionHoldTolerance, positionRestartTolerance);
         boolean smoothZero = continuous && !control.isTripped()
                 && (fullRotation || (angle > -clockwise && angle < counterclockwise));
         setPower(limitManual(power, angle), smoothZero);
         if (state == TurretStates.ODOM_TRACKING && leftTargetReachable && !control.isTripped()
-                && Math.abs(target - angle) <= READY_ANGLE_TOLERANCE_DEGREES) {
+                && Math.abs(target - angle) <= readyAngleTolerance()) {
             if (atTargetSinceNanos == 0) atTargetSinceNanos = System.nanoTime();
         } else atTargetSinceNanos = 0;
     }

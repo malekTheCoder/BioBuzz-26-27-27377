@@ -63,6 +63,16 @@ public final class TurretPositionControl {
     }
 
     public double powerTo(double target, boolean continuous) {
+        return powerTo(target, continuous, Double.NaN, Double.NaN);
+    }
+
+    // Separate stationary stop/restart thresholds keep a quiet band around the aim.
+    public double powerTo(double target, boolean continuous,
+                          double positionHoldTolerance, double positionRestartTolerance) {
+        boolean preciseHold = Double.isFinite(positionHoldTolerance) && positionHoldTolerance > 0
+                && Double.isFinite(positionRestartTolerance) && positionRestartTolerance >= positionHoldTolerance;
+        double stopTolerance = preciseHold ? positionHoldTolerance : Turret.READY_ANGLE_TOLERANCE_DEGREES;
+        double restartTolerance = preciseHold ? positionRestartTolerance : Turret.RESTART_DEG;
         if (!Double.isFinite(angle) || !Double.isFinite(target)) {
             stop();
             return 0;
@@ -113,10 +123,10 @@ public final class TurretPositionControl {
         }
 
         if (continuous) settled = false; // follow small target changes without 3-degree stop/restart bursts
-        else if (Math.abs(error) <= Turret.READY_ANGLE_TOLERANCE_DEGREES) {
+        else if (Math.abs(error) <= stopTolerance) {
             settled = true;
             boost = 0;
-        } else if (Math.abs(error) > Turret.RESTART_DEG) settled = false;
+        } else if (Math.abs(error) > restartTolerance) settled = false;
         if (settled) return 0;
 
         boolean stalled = Math.abs(speed) < Turret.STALL_SPEED_DEG_S
@@ -179,6 +189,7 @@ public final class TurretPositionControl {
         return (Turret.LEFT_ENCODER_REVERSED ? -encoderDegrees : encoderDegrees) / 360.0;
     }
     public double getSpeed() { return speed; }
+    public double getTargetSpeed() { return targetRate; }
     public double getBoost() { return boost; }
     public boolean isTripped() { return tripped; }
     public String getFaultReason() {

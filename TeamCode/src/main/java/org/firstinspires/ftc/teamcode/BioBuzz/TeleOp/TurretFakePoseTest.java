@@ -24,6 +24,8 @@ public class TurretFakePoseTest extends LinearOpMode {
     public static double BENCH_BRAKE_RAMP_PER_SECOND = 4.0;
     public static double MOTION_PERIOD_SECONDS = 16.0;
     public static double MOTION_ACCEL_SECONDS = 2.0;
+    public static double ALIGN_STOP_DEGREES = 1.0;
+    public static double ALIGN_RESTART_DEGREES = 1.5;
     // Viewed with +X to the right and +Y up. Every heading is 60 degrees apart.
     private static final String[] POSE_NAMES = {
             "TOP LEFT", "TOP MIDDLE", "TOP RIGHT",
@@ -37,6 +39,8 @@ public class TurretFakePoseTest extends LinearOpMode {
     private boolean motionLoop, aligningLoopStart, rearAim;
     private double motionPhase, motionSpeedScale;
     private double tripPower, tripSpeed, tripError;
+    private double tripAimSpeed, tripActual, tripTarget;
+    private String tripRelation = "";
     private double worstLoopError, loopTrackingSeconds, maxLoopGapMillis;
     private boolean measuredFeedforward;
     private boolean lastLeftBumper, lastRightBumper;
@@ -151,6 +155,11 @@ public class TurretFakePoseTest extends LinearOpMode {
                         : BENCH_TRAVEL_DEGREES, BENCH_TRAVEL_DEGREES);
                 turret.setPowerRampPerSecond(BENCH_POWER_RAMP_PER_SECOND, BENCH_BRAKE_RAMP_PER_SECOND);
                 turret.setFullRotation(BENCH_FULL_ROTATION);
+                // Keep a quiet hold band, accepted by readiness, and correct drift
+                // beyond it rather than waiting for the usual 3-deg restart.
+                turret.setPositionHoldTolerance(motionLoop && aligningLoopStart
+                        ? ALIGN_STOP_DEGREES : Double.NaN, motionLoop && aligningLoopStart
+                        ? ALIGN_RESTART_DEGREES : Double.NaN);
                 turret.setContinuousTracking(motionLoop && !aligningLoopStart);
                 boolean wasTripped = turret.isLeftControlTripped();
                 double previousPower = turret.getLeftPower();
@@ -158,8 +167,14 @@ public class TurretFakePoseTest extends LinearOpMode {
                 if (!wasTripped && turret.isLeftControlTripped()) {
                     // A latched stop normally displays zero power; retain useful trip evidence.
                     tripPower = previousPower;
-                    tripSpeed = Math.abs(turret.getLeftSpeed());
-                    tripError = Math.abs(turret.getLeftTrackingError());
+                    tripSpeed = turret.getLeftSpeed(); // keep direction, not just magnitude
+                    tripAimSpeed = turret.getLeftTargetSpeed();
+                    double signedError = turret.getLeftTrackingError();
+                    tripError = Math.abs(signedError);
+                    tripActual = normalizeHeading(turret.getLeftAngle());
+                    tripTarget = normalizeHeading(turret.getLeftCommandedAngle());
+                    tripRelation = Math.abs(tripAimSpeed) <= 0.5 ? "AIM NEARLY STILL"
+                            : signedError * tripAimSpeed < 0 ? "AHEAD OF AIM" : "BEHIND AIM";
                 }
                 if (motionLoop && !aligningLoopStart && !wasTripped
                         && turret.get() == Turret.TurretStates.ODOM_TRACKING
@@ -279,9 +294,12 @@ public class TurretFakePoseTest extends LinearOpMode {
         else status = "TRACKING";
         Common.dashTelemetry.addData("Status ", status);
         Common.dashTelemetry.addLine("");
-        Common.dashTelemetry.addData("Actual ", "%6.1f deg", normalizeHeading(turret.getLeftAngle()));
-        Common.dashTelemetry.addData("Target ", "%6.1f deg", normalizeHeading(turret.getLeftCommandedAngle()));
         boolean tripped = turret.isLeftControlTripped();
+        // Freeze angles at the fault too; coasting after the stop must not alter its evidence.
+        Common.dashTelemetry.addData(tripped ? "Trip actual" : "Actual ", "%6.1f deg",
+                tripped ? tripActual : normalizeHeading(turret.getLeftAngle()));
+        Common.dashTelemetry.addData(tripped ? "Trip target" : "Target ", "%6.1f deg",
+                tripped ? tripTarget : normalizeHeading(turret.getLeftCommandedAngle()));
         Common.dashTelemetry.addData(tripped ? "Trip error" : "Lag    ", "%6.1f deg",
                 tripped ? tripError : Math.abs(turret.getLeftTrackingError()));
         if (motionLoop) {
@@ -291,8 +309,12 @@ public class TurretFakePoseTest extends LinearOpMode {
         }
         Common.dashTelemetry.addData(tripped ? "Trip power" : "Power  ", "%6.2f",
                 tripped ? tripPower : turret.getLeftPower());
-        Common.dashTelemetry.addData(tripped ? "Trip speed" : "Speed  ", "%6.1f deg/s",
+        Common.dashTelemetry.addData(tripped ? "Trip speed" : "Speed  ", "%+7.1f deg/s",
                 tripped ? tripSpeed : Math.abs(turret.getLeftSpeed()));
+        if (tripped) {
+            Common.dashTelemetry.addData("Trip aim speed", "%+7.1f deg/s", tripAimSpeed);
+            Common.dashTelemetry.addData("Trip relation", tripRelation);
+        }
         Common.dashTelemetry.addLine(" ");
         Common.dashTelemetry.addData("Test   ", rearAim ? "REAR AIM 180 deg"
                 : motionLoop ? String.format("LOOP %.0f sec", MOTION_PERIOD_SECONDS) : POSE_NAMES[presetIndex]);
