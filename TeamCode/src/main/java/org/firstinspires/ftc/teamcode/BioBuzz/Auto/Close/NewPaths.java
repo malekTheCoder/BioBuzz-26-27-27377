@@ -26,7 +26,7 @@ public class NewPaths {
     // POSES (ALL CENTRALIZED)
     // =============================
 
-    public static Pose P_START = new Pose(45.1923, 8.5);
+    public static Pose P_START = new Pose(45.1923, 9.0); // 9" = half an 18" robot, so it starts flush with the wall
 
     // Path 1 (shoot preload)
     public static Pose P_SHOOT = new Pose(58.3937, 23.9549);
@@ -38,11 +38,11 @@ public class NewPaths {
     public static Pose P_3 = new Pose(9.068, 9.2071);
 
     // Path 4
-    public static Pose P_4_CP = new Pose(18.3134, 87.8641);
+    public static Pose P_4_CP = new Pose(38, 138); // keeps path 4 clear of the left flower and the hives
     public static Pose P_4 = new Pose(54.3081, 118.8197);
 
     // Path 5
-    public static Pose P_5 = new Pose(51.1268, 135.8577);
+    public static Pose P_5 = new Pose(51.1268, 126.0); // was 135.86: robot went past the top wall and hit the top flower
 
     // Path 6 (intake on)
     public static Pose P_6 = new Pose(58, 118.9085);
@@ -56,32 +56,38 @@ public class NewPaths {
         f = follower;
     }
 
-    public double mirrorAngleRad(double angle) {
-        return Math.PI - angle;
+    // This field is the same after a half-turn (red starts bottom left, blue starts top right),
+    // so the other alliance is a 180° rotation around the field center, not a left/right flip
+    public Pose rotatePose(Pose pose) {
+        return new Pose(144 - pose.getX(), 144 - pose.getY());
     }
 
-    // poses above are drawn for BLUE (left half of the field)
-    public static boolean isPathRed = false;
+    public double rotateAngleRad(double angle) {
+        return angle + Math.PI;
+    }
+
+    // poses above are drawn for RED (start bottom left)
+    public static boolean isPathRed = true;
 
     public void mirrorAll() {
-        P_START = P_START.mirror();
+        P_START = rotatePose(P_START);
 
-        P_SHOOT = P_SHOOT.mirror();
+        P_SHOOT = rotatePose(P_SHOOT);
 
-        P_2 = P_2.mirror();
+        P_2 = rotatePose(P_2);
 
-        P_3 = P_3.mirror();
+        P_3 = rotatePose(P_3);
 
-        P_4_CP = P_4_CP.mirror();
-        P_4 = P_4.mirror();
+        P_4_CP = rotatePose(P_4_CP);
+        P_4 = rotatePose(P_4);
 
-        P_5 = P_5.mirror();
+        P_5 = rotatePose(P_5);
 
-        P_6 = P_6.mirror();
+        P_6 = rotatePose(P_6);
 
-        H_90 = mirrorAngleRad(H_90);
-        H_180 = mirrorAngleRad(H_180);
-        H_270 = mirrorAngleRad(H_270);
+        H_90 = rotateAngleRad(H_90);
+        H_180 = rotateAngleRad(H_180);
+        H_270 = rotateAngleRad(H_270);
     }
 
     // start pose + heading for follower.setPose()
