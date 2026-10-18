@@ -39,6 +39,7 @@ public class SimpleTurretTeleOp extends LinearOpMode {
             }
             waitForStart();
             if (isStopRequested()) return;
+            turret.zeroLeftForward(); // physically point forward before Start
 
             drivetrain.setPose(new Pose(START_X, START_Y,
                     Math.toRadians(START_HEADING_DEGREES)));
@@ -68,6 +69,7 @@ public class SimpleTurretTeleOp extends LinearOpMode {
 
     private void showTelemetry(Follower drivetrain, Turret turret) {
         Common.dashTelemetry.addLine("GAMEPAD 1: A = track, B = stop turrets");
+        Common.dashTelemetry.addLine("LEFT ONLY: point turret FORWARD before Start; ratio = 4.782");
         Common.dashTelemetry.addLine("D-pad up = red, down = blue");
         Common.dashTelemetry.addLine("Left stick = drive, right stick X = turn");
         Common.dashTelemetry.addData("Robot pose", "%.1f, %.1f, %.1f deg",
