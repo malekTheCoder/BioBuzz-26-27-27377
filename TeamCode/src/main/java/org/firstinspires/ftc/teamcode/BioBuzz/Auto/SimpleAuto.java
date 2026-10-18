@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.BioBuzz.Auto;
 
 import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
 
+import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.pedropathing.geometry.Pose;
@@ -47,15 +48,34 @@ public class SimpleAuto extends AbstractAuto {
                         ),
                         NewRobotActions.shoot(1.0),
                         NewRobotActions.stopShooter(),
-                        // paths 2-6
                         new FollowPathAction(robot.drivetrain, paths.path2, true),
-                        new FollowPathAction(robot.drivetrain, paths.path3, true),
-                        new FollowPathAction(robot.drivetrain, paths.path4, true),
+                        // path 3: intake on, half speed so it can grab all 4 balls
+                        new InstantAction(() -> robot.drivetrain.setMaxPower(0.5)),
+                        new ParallelAction(
+                                new FollowPathAction(robot.drivetrain, paths.path3, true),
+                                NewRobotActions.startIntake(1)
+                        ),
+                        new InstantAction(() -> robot.drivetrain.setMaxPower(1)),
+                        // path 4: intake keeps going 1 s so the last ball gets in;
+                        // spin up shooter + aim turret while driving, then shoot
+                        new ParallelAction(
+                                new FollowPathAction(robot.drivetrain, paths.path4, true),
+                                NewRobotActions.intakeFor(1, 1.0),
+                                NewRobotActions.enableShooter(),
+                                NewRobotActions.startTurretTracking()
+                        ),
+                        NewRobotActions.shoot(1.0),
+                        NewRobotActions.stopShooter(),
                         new FollowPathAction(robot.drivetrain, paths.path5, true),
-                        // end of path 5 (top): intake on, keep it on through path 6
-                        NewRobotActions.startIntake(1),
-                        new FollowPathAction(robot.drivetrain, paths.path6, true),
+                        // path 6: intake on + shooter spinning up, then intake off and shoot
+                        new ParallelAction(
+                                new FollowPathAction(robot.drivetrain, paths.path6, true),
+                                NewRobotActions.startIntake(1),
+                                NewRobotActions.enableShooter(),
+                                NewRobotActions.startTurretTracking()
+                        ),
                         NewRobotActions.stopIntake(),
+                        NewRobotActions.shoot(1.0),
                         NewRobotActions.stopAll()
                 )
         );

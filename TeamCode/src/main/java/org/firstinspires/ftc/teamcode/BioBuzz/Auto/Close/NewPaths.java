@@ -42,7 +42,7 @@ public class NewPaths {
     public static Pose P_4 = new Pose(54.3081, 118.8197);
 
     // Path 5
-    public static Pose P_5 = new Pose(51.1268, 126.0); // was 135.86: robot went past the top wall and hit the top flower
+    public static Pose P_5 = new Pose(51.1268, 129.0); // front of the robot stops about 1" from the top flower
 
     // Path 6 (intake on)
     public static Pose P_6 = new Pose(58, 118.9085);
@@ -129,13 +129,15 @@ public class NewPaths {
         // ---------- Path 5 ----------
         path5 = f.pathBuilder()
                 .addPath(new BezierLine(P_4, P_5))
-                .setLinearHeadingInterpolation(H_270, H_90)
+                // finish the turn halfway, then drive straight at the flower
+                .setLinearHeadingInterpolation(H_270, H_90, 0.5)
                 .build();
 
         // ---------- Path 6 (intake on) ----------
         path6 = f.pathBuilder()
                 .addPath(new BezierLine(P_5, P_6))
-                .setLinearHeadingInterpolation(H_90, H_270)
+                // (start, end, endTime, startTime): back away from the flower first, then turn
+                .setLinearHeadingInterpolation(H_90, H_270, 1.0, 0.4)
                 .build();
     }
 }
