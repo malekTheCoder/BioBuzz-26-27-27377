@@ -48,12 +48,26 @@ public class Paths {
 
     public PathChain leave;
 
+    public PathChain simplePath1;
+    public PathChain simplePath2;
+    public PathChain simplePath3;
+
     // =============================
     // POSES (ALL CENTRALIZED)
     // =============================
 
     public static Pose P_START = new Pose(55.53, 8.21);
     public static Pose P_SHOOT = new Pose(89.000, 102.000);
+
+    // Simple path-only auto.
+    public static Pose P_SIMPLE_START = new Pose(54.9488, 8.7103);
+    public static Pose P_SIMPLE_PATH1 = new Pose(54.6111, 13.571);
+    public static Pose P_SIMPLE_POINT2_START = new Pose(54.6111, 13.571);
+    public static Pose P_SIMPLE_POINT2 = new Pose(6.4238, 8.0257);
+    public static Pose P_SIMPLE_POINT2_CONTROL1 = new Pose(5.748, 49.4478);
+    public static Pose P_SIMPLE_POINT3_START = new Pose(6.4238, 8.0257);
+    public static Pose P_SIMPLE_POINT3 = new Pose(57.2496, 125.3026);
+    public static Pose P_SIMPLE_POINT3_CONTROL1 = new Pose(30.9374, 137.7721);
 
     // First Shot
     public static Pose P_SH_1 = new Pose(55.62, 31.82);
@@ -125,6 +139,15 @@ public class Paths {
         P_START = P_START.mirror();
         P_SHOOT = P_SHOOT.mirror();
 
+        P_SIMPLE_START = P_SIMPLE_START.mirror();
+        P_SIMPLE_PATH1 = P_SIMPLE_PATH1.mirror();
+        P_SIMPLE_POINT2_START = P_SIMPLE_POINT2_START.mirror();
+        P_SIMPLE_POINT2 = P_SIMPLE_POINT2.mirror();
+        P_SIMPLE_POINT2_CONTROL1 = P_SIMPLE_POINT2_CONTROL1.mirror();
+        P_SIMPLE_POINT3_START = P_SIMPLE_POINT3_START.mirror();
+        P_SIMPLE_POINT3 = P_SIMPLE_POINT3.mirror();
+        P_SIMPLE_POINT3_CONTROL1 = P_SIMPLE_POINT3_CONTROL1.mirror();
+
         P_SH_1 = P_SH_1.mirror();
 
         P_G_START = P_G_START.mirror();
@@ -175,6 +198,23 @@ public class Paths {
     // =============================
     // BUILD ALL PATHS
     // =============================
+
+    public void simpleBuild() {
+        simplePath1 = f.pathBuilder()
+                .addPath(new BezierLine(P_SIMPLE_START, P_SIMPLE_PATH1))
+                .setConstantHeadingInterpolation(H_90)
+                .build();
+
+        simplePath2 = f.pathBuilder()
+                .addPath(new BezierCurve(P_SIMPLE_POINT2_START, P_SIMPLE_POINT2_CONTROL1, P_SIMPLE_POINT2))
+                .setLinearHeadingInterpolation(H_90, H_270)
+                .build();
+
+        simplePath3 = f.pathBuilder()
+                .addPath(new BezierCurve(P_SIMPLE_POINT3_START, P_SIMPLE_POINT3_CONTROL1, P_SIMPLE_POINT3))
+                .setConstantHeadingInterpolation(H_270)
+                .build();
+    }
 
     public void originalshot () {
         firstShot = f.pathBuilder()
