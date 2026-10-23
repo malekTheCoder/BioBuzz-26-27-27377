@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.BioBuzz.Subsystems;
-import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions.getDistanceToGoal;
-import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions.getDistanceToGoal;
+import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
@@ -26,24 +25,25 @@ public class Shooter {
     public static double TICKS_PER_REV = 28;
     public Shooter(HardwareMap hardwareMap) {
         leftShooter = new MotorEx(hardwareMap, "leftShooterMotor", Motor.GoBILDA.BARE);
-        rightShooter = new MotorEx(hardwareMap, "rightShooterMotor", Motor.GoBILDA.BARE);
+        // Right turret/flywheel is still being built; no right hardware lookup yet.
+        // rightShooter = new MotorEx(hardwareMap, "rightShooterMotor", Motor.GoBILDA.BARE);
 
         leftShooter.motor.setDirection(DcMotorSimple.Direction.FORWARD);
-        rightShooter.motor.setDirection(DcMotorSimple.Direction.FORWARD);
+        if (rightShooter != null) rightShooter.motor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         leftShooter.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
-        rightShooter.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
+        if (rightShooter != null) rightShooter.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
 
         leftShooter.resetEncoder();
-        rightShooter.resetEncoder();
+        if (rightShooter != null) rightShooter.resetEncoder();
 // Set velocity PIDF on both motors
         leftShooter.motorEx.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightShooter.motorEx.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        if (rightShooter != null) rightShooter.motorEx.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         updatePIDF();
     }
     // Called from TeleOp every loop so dashboard changes apply live
     public void updatePIDF() {
-        rightShooter.motorEx.setPIDFCoefficients(
+        if (rightShooter != null) rightShooter.motorEx.setPIDFCoefficients(
                 com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER,
                 new com.qualcomm.robotcore.hardware.PIDFCoefficients(kP, kI, kD, kF)
         );
@@ -55,17 +55,19 @@ public class Shooter {
     // Raw power — used in auto
 // Variable velocity — used in TeleOp with distance-based control
     public void setRightVelocity(double velo) {
-
-        rightShooter.setVelocity(velo);
+        if (rightShooter == null) return; // right side disabled for now
+        rightShooter.motorEx.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightShooter.motorEx.setVelocity(velo);
     }
     public void setLeftVelocity(double velo) {
-        leftShooter.setVelocity(velo);
+        leftShooter.motorEx.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftShooter.motorEx.setVelocity(velo);
     }
     public double getLeftVelocity() {
         return leftShooter.getVelocity();
     }
     public double getRightVelocity() {
-        return rightShooter.getVelocity();
+        return rightShooter == null ? 0 : rightShooter.getVelocity();
     }
 
     public static double calcVelocity(double distance) { // d= horizantal distance from goal
@@ -81,11 +83,13 @@ public class Shooter {
         double rps = surface / (2 * Math.PI * WHEEL_RADIUS);
         return rps * TICKS_PER_REV;                   // ticks/sec
     }
-    public void spinForCurrentDistance() {
-        double distance = getDistanceToGoal() * 0.0254; // conver to meters with .0254
+    public void setVelo() {
+        // Use the same alliance and field-half goal as the turrets.
+        double distance = robot.turret.getDistance() * 0.0254;
         double ticks = calcVelocity(distance);
-        if (ticks < 0) { stop(); return; }
+        if (!Double.isFinite(ticks) || ticks < 0) { stop(); return; }
 
+        lastTarget = ticks; // atSpeed needs the speed we're actually asking for
         setLeftVelocity(ticks);
         setRightVelocity(ticks);
     }
@@ -97,18 +101,31 @@ public class Shooter {
         if (lastTarget <= 0) return false;
         double tol = SPEED_TOLERANCE_RPM * TICKS_PER_REV / 60.0;   // RPM → ticks/sec
         return Math.abs(getLeftVelocity()  - lastTarget) <= tol
-                && Math.abs(getRightVelocity() - lastTarget) <= tol;
+                && (rightShooter == null || Math.abs(getRightVelocity() - lastTarget) <= tol);
     }
     public boolean enabled = false;
 
     public void update() {
         if (enabled) {
-            spinForCurrentDistance();
+            updatePIDF();
+            setVelo();
         }
     }
 
     public void stop() {
-        rightShooter.set(0);
+        enabled = false;
+        lastTarget = -1;
+        if (rightShooter != null) rightShooter.set(0);
         leftShooter.set(0);
+    }
+
+    // Independent trigger power for the hardware test; no distance calculation.
+    public void setPower(double left, double right) {
+        enabled = false;
+        lastTarget = -1;
+        leftShooter.motorEx.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        if (rightShooter != null) rightShooter.motorEx.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftShooter.motorEx.setPower(left);
+        if (rightShooter != null) rightShooter.motorEx.setPower(right);
     }
 }
