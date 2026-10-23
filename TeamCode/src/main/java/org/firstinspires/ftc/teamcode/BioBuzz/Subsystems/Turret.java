@@ -21,7 +21,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     // public static final String RIGHT_ENCODER_NAME = "rightTurretEncoder";
 
     // Inches from robot center: +X forward, +Y left.
-    public static double LEFT_OFFSET_X = 0.0, LEFT_OFFSET_Y = 0.0;
+    public static double LEFT_OFFSET_X = -7.125, LEFT_OFFSET_Y = -0.125;
     public static boolean LEFT_ENCODER_REVERSED = false;
     public static boolean LEFT_SERVO_REVERSED = true;
     // Mirror the field aim into this turret's existing encoder/servo angle direction.

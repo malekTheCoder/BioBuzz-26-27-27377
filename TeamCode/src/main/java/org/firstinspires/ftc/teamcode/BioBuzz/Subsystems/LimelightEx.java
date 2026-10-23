@@ -36,6 +36,7 @@ public class LimelightEx {
     private LLResult result;
     private Pose latestPose;
     private int currentPipeline = -1;
+    private String relocalizeStatus = "not requested";
 
     public LimelightEx(Limelight3A limelight) {
         this.limelight = limelight;
@@ -96,11 +97,16 @@ public class LimelightEx {
      * Heading stays from Pedro/odometry because MegaTag2 uses that heading as an input.
      */
     public Pose getPoseEstimate(double robotHeading) {
+        if (!Double.isFinite(robotHeading)) {
+            latestPose = null;
+            return null;
+        }
         limelight.updateRobotOrientation(Math.toDegrees(robotHeading) - HEADING_OFFSET);
         result = limelight.getLatestResult();
 
         if (result == null
                 || !result.isValid()
+                || result.getPipelineIndex() != PIPELINE_APRILTAG
                 || result.getStaleness() >= STALENESS_TIME
                 || result.getBotposeTagCount() == 0) {
             latestPose = null;
@@ -116,6 +122,10 @@ public class LimelightEx {
         // Limelight starts at field center. Pedro starts at a field corner.
         double x = limelightPose.getPosition().y * INCHES_PER_METER + FIELD_CENTER_INCHES;
         double y = FIELD_CENTER_INCHES - limelightPose.getPosition().x * INCHES_PER_METER;
+        if (!Double.isFinite(x) || !Double.isFinite(y)) {
+            latestPose = null;
+            return null;
+        }
         latestPose = new Pose(x, y, robotHeading);
         return latestPose;
     }
@@ -132,17 +142,28 @@ public class LimelightEx {
     /** Corrects Pedro X/Y only when the vision pose is close enough to the current pose. */
     public boolean relocalize(Follower drivetrain) {
         Pose visionPose = getPoseEstimate(drivetrain.getHeading());
-        if (visionPose == null) return false;
+        if (visionPose == null) {
+            relocalizeStatus = "no fresh AprilTag pose - check pipeline/map";
+            return false;
+        }
 
         Pose currentPose = drivetrain.getPose();
         double jump = Math.hypot(
                 visionPose.getX() - currentPose.getX(),
                 visionPose.getY() - currentPose.getY()
         );
-        if (jump > MAX_RELOCALIZE_JUMP_INCHES) return false;
+        if (!Double.isFinite(jump) || jump > MAX_RELOCALIZE_JUMP_INCHES) {
+            relocalizeStatus = "rejected pose jump: " + Math.round(jump) + " in";
+            return false;
+        }
 
         drivetrain.setPose(visionPose);
+        relocalizeStatus = "applied";
         return true;
+    }
+
+    public String getRelocalizeStatus() {
+        return relocalizeStatus;
     }
 
     public Limelight3A getLimelight() {
