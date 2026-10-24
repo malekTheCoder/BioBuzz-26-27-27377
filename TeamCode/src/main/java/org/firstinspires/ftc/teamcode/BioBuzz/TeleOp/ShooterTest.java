@@ -40,7 +40,7 @@ public class ShooterTest extends OpMode {
 //        }
 
        //shooter.setVelocity(360, AngleUnit.DEGREES);
-        shooter.setVelocity(5);
+        shooter.setVelocity(250);
 
         //telemetry.addData("TargatVelo", targetVelo);
         telemetry.addData("Velo", shooter.getVelocity());

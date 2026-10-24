@@ -12,63 +12,50 @@ import com.qualcomm.robotcore.util.Range;
 public class Turret extends Subsystem<Turret.TurretStates> {
     public enum TurretStates { IDLE, ODOM_TRACKING, MANUAL }
 
-    // One continuous rotation servo and one analog encoder per turret.
     public static final String LEFT_SERVO_NAME = "leftTurretServo";
-    public static final String RIGHT_SERVO_NAME = "rightTurretServo";
     public static final String LEFT_ENCODER_NAME = "leftTurretEncoder";
-    public static final String RIGHT_ENCODER_NAME = "rightTurretEncoder";
 
-    // Turret centers from robot center, in inches: +X forward, +Y left.
     public static double LEFT_OFFSET_X = 0.0, LEFT_OFFSET_Y = 0.0;
-    public static double RIGHT_OFFSET_X = 0.0, RIGHT_OFFSET_Y = 0.0;
 
-    // Record these voltages when the turrets point straight forward.
-    public static double LEFT_ZERO_VOLTAGE = 0.0, RIGHT_ZERO_VOLTAGE = 0.0;
-    public static boolean LEFT_ENCODER_REVERSED = false, RIGHT_ENCODER_REVERSED = false;
+    public static double LEFT_ZERO_VOLTAGE = 0.0;
+    public static boolean LEFT_ENCODER_REVERSED = false;
     public static double ENCODER_FULL_TURN_VOLTS = 3.3;
 
-    // Tune directions with the gears or belts disconnected first.
     public static boolean LEFT_SERVO_REVERSED = false;
-    public static boolean RIGHT_SERVO_REVERSED = false;
 
-    // Start narrow; increase only after checking mechanical and cable clearance.
     public static double LEFT_MAX_CLOCKWISE_DEGREES = 30.0;
     public static double LEFT_MAX_COUNTERCLOCKWISE_DEGREES = 30.0;
-    public static double RIGHT_MAX_CLOCKWISE_DEGREES = 30.0;
-    public static double RIGHT_MAX_COUNTERCLOCKWISE_DEGREES = 30.0;
     public static double KP = 0.01, MAX_POWER = 0.30, MANUAL_MAX_POWER = 0.25;
     public static double READY_ANGLE_TOLERANCE_DEGREES = 2.0;
     public static double SERVO_SETTLE_TIME_SECONDS = 0.20;
 
-    private final CRServo leftServo, rightServo;
-    private final AnalogInput leftEncoder, rightEncoder;
+    private final CRServo leftServo;
+    private final AnalogInput leftEncoder;
     private final Follower drivetrain;
     private TurretStates state = TurretStates.IDLE;
     private Pose goal;
     private boolean lastAllianceRed, targetingTopHalf;
-    private double leftTargetAngle, rightTargetAngle;
-    private double leftManualPower = Double.NaN, rightManualPower = Double.NaN;
-    private double leftPower, rightPower;
-    private boolean leftTargetReachable, rightTargetReachable;
+    private double leftTargetAngle;
+    private double leftManualPower = Double.NaN;
+    private double leftPower;
+    private boolean leftTargetReachable;
     private long atTargetSinceNanos;
-    private double lastLeftRawAngle = Double.NaN, lastRightRawAngle = Double.NaN;
-    private double leftContinuousAngle, rightContinuousAngle;
+    private double lastLeftRawAngle = Double.NaN;
+    private double leftContinuousAngle;
 
     public Turret(HardwareMap hardwareMap, Follower drivetrain) {
         this.drivetrain = drivetrain;
         leftServo = hardwareMap.get(CRServo.class, LEFT_SERVO_NAME);
-        rightServo = hardwareMap.get(CRServo.class, RIGHT_SERVO_NAME);
         leftEncoder = hardwareMap.get(AnalogInput.class, LEFT_ENCODER_NAME);
-        rightEncoder = hardwareMap.get(AnalogInput.class, RIGHT_ENCODER_NAME);
-        setPower(0, 0);
+        setPower(0);
         setAlliance();
     }
 
     @Override public void set(TurretStates newState) {
         state = newState;
         atTargetSinceNanos = 0;
-        leftTargetReachable = rightTargetReachable = false;
-        setPower(0, 0);
+        leftTargetReachable = false;
+        setPower(0);
     }
 
     @Override public TurretStates get() { return state; }
@@ -88,9 +75,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
         return Math.hypot(currentGoal.getX() - p.getX(), currentGoal.getY() - p.getY());
     }
     public double getLeftTargetAngle() { return leftTargetAngle; }
-    public double getRightTargetAngle() { return rightTargetAngle; }
     public double getLeftEncoderVoltage() { return leftEncoder.getVoltage(); }
-    public double getRightEncoderVoltage() { return rightEncoder.getVoltage(); }
     public double getLeftAngle() {
         double raw = readAngle(leftEncoder, LEFT_ZERO_VOLTAGE, LEFT_ENCODER_REVERSED);
         if (Double.isNaN(raw)) return Double.NaN;
@@ -98,14 +83,6 @@ public class Turret extends Subsystem<Turret.TurretStates> {
         else leftContinuousAngle += normalizeDegrees(raw - lastLeftRawAngle);
         lastLeftRawAngle = raw;
         return leftContinuousAngle;
-    }
-    public double getRightAngle() {
-        double raw = readAngle(rightEncoder, RIGHT_ZERO_VOLTAGE, RIGHT_ENCODER_REVERSED);
-        if (Double.isNaN(raw)) return Double.NaN;
-        if (Double.isNaN(lastRightRawAngle)) rightContinuousAngle = raw;
-        else rightContinuousAngle += normalizeDegrees(raw - lastRightRawAngle);
-        lastRightRawAngle = raw;
-        return rightContinuousAngle;
     }
 
     public static Pose calculateTurretPosition(Pose p, double forward, double left) {
@@ -134,19 +111,16 @@ public class Turret extends Subsystem<Turret.TurretStates> {
         return normalizeDegrees(reversed ? -angle : angle);
     }
 
-    // Gamepad sticks give speed to each turret.
-    public void setManualPower(double left, double right) {
+    public void setManualPower(double left) {
         state = TurretStates.MANUAL;
         leftManualPower = Range.clip(left, -MANUAL_MAX_POWER, MANUAL_MAX_POWER);
-        rightManualPower = Range.clip(right, -MANUAL_MAX_POWER, MANUAL_MAX_POWER);
         atTargetSinceNanos = 0;
     }
 
-    public void setManualAngles(double left, double right) {
+    public void setManualAngle(double left) {
         state = TurretStates.MANUAL;
         leftTargetAngle = normalizeDegrees(left);
-        rightTargetAngle = normalizeDegrees(right);
-        leftManualPower = rightManualPower = Double.NaN;
+        leftManualPower = Double.NaN;
         atTargetSinceNanos = 0;
     }
 
@@ -156,40 +130,29 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     @Override public void run() {
         if (lastAllianceRed != Common.isRed) setAlliance();
         if (state == TurretStates.ODOM_TRACKING) updateTracking();
-        // Keep reading while stopped so crossing encoder zero doesn't lose a turn.
-        double leftAngle = getLeftAngle(), rightAngle = getRightAngle();
-        if (state == TurretStates.IDLE) { setPower(0, 0); return; }
-        if (!Double.isFinite(leftAngle) || !Double.isFinite(rightAngle)
-                || !Double.isFinite(leftTargetAngle) || !Double.isFinite(rightTargetAngle)) {
-            leftTargetReachable = rightTargetReachable = false;
+        double leftAngle = getLeftAngle();
+        if (state == TurretStates.IDLE) { setPower(0); return; }
+        if (!Double.isFinite(leftAngle) || !Double.isFinite(leftTargetAngle)) {
+            leftTargetReachable = false;
             atTargetSinceNanos = 0;
-            setPower(0, 0);
+            setPower(0);
             return;
         }
         if (state == TurretStates.MANUAL && !Double.isNaN(leftManualPower)) {
             setPower(limitManual(leftManualPower, leftAngle,
-                            LEFT_MAX_CLOCKWISE_DEGREES, LEFT_MAX_COUNTERCLOCKWISE_DEGREES),
-                    limitManual(rightManualPower, rightAngle,
-                            RIGHT_MAX_CLOCKWISE_DEGREES, RIGHT_MAX_COUNTERCLOCKWISE_DEGREES));
+                    LEFT_MAX_CLOCKWISE_DEGREES, LEFT_MAX_COUNTERCLOCKWISE_DEGREES));
             return;
         }
 
-        // Choose an equivalent aim (+/- 360) only when the cable limits allow it.
         double leftRoute = chooseRoute(leftTargetAngle, leftAngle,
                 LEFT_MAX_CLOCKWISE_DEGREES, LEFT_MAX_COUNTERCLOCKWISE_DEGREES);
-        double rightRoute = chooseRoute(rightTargetAngle, rightAngle,
-                RIGHT_MAX_CLOCKWISE_DEGREES, RIGHT_MAX_COUNTERCLOCKWISE_DEGREES);
         leftTargetReachable = !Double.isNaN(leftRoute);
-        rightTargetReachable = !Double.isNaN(rightRoute);
         double leftError = (leftTargetReachable ? leftRoute : Range.clip(leftTargetAngle,
                 -LEFT_MAX_CLOCKWISE_DEGREES, LEFT_MAX_COUNTERCLOCKWISE_DEGREES)) - leftAngle;
-        double rightError = (rightTargetReachable ? rightRoute : Range.clip(rightTargetAngle,
-                -RIGHT_MAX_CLOCKWISE_DEGREES, RIGHT_MAX_COUNTERCLOCKWISE_DEGREES)) - rightAngle;
-        setPower(aimPower(leftError), aimPower(rightError));
+        setPower(aimPower(leftError));
 
-        if (state == TurretStates.ODOM_TRACKING && leftTargetReachable && rightTargetReachable
-                && Math.abs(leftError) <= READY_ANGLE_TOLERANCE_DEGREES
-                && Math.abs(rightError) <= READY_ANGLE_TOLERANCE_DEGREES) {
+        if (state == TurretStates.ODOM_TRACKING && leftTargetReachable
+                && Math.abs(leftError) <= READY_ANGLE_TOLERANCE_DEGREES) {
             if (atTargetSinceNanos == 0) atTargetSinceNanos = System.nanoTime();
         } else atTargetSinceNanos = 0;
     }
@@ -203,8 +166,6 @@ public class Turret extends Subsystem<Turret.TurretStates> {
         double heading = Math.toDegrees(robot.getHeading());
         leftTargetAngle = normalizeDegrees(calculateAngleToGoal(calculateTurretPosition(
                 robot, LEFT_OFFSET_X, LEFT_OFFSET_Y)) - heading);
-        rightTargetAngle = normalizeDegrees(calculateAngleToGoal(calculateTurretPosition(
-                robot, RIGHT_OFFSET_X, RIGHT_OFFSET_Y)) - heading);
     }
 
     private static double chooseRoute(double target, double current, double cw, double ccw) {
@@ -231,11 +192,9 @@ public class Turret extends Subsystem<Turret.TurretStates> {
         return Range.clip(KP * error, -MAX_POWER, MAX_POWER);
     }
 
-    private void setPower(double left, double right) {
+    private void setPower(double left) {
         leftPower = left;
-        rightPower = right;
         leftServo.setPower(LEFT_SERVO_REVERSED ? -left : left);
-        rightServo.setPower(RIGHT_SERVO_REVERSED ? -right : right);
     }
 
     public boolean isReadyToShoot() {
@@ -252,10 +211,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
         Common.dashTelemetry.addData("Distance", "%.1f in", getDistance());
         Common.dashTelemetry.addData("Left V / angle / target / power", "%.3f / %.1f / %.1f / %.2f",
                 getLeftEncoderVoltage(), getLeftAngle(), leftTargetAngle, leftPower);
-        Common.dashTelemetry.addData("Right V / angle / target / power", "%.3f / %.1f / %.1f / %.2f",
-                getRightEncoderVoltage(), getRightAngle(), rightTargetAngle, rightPower);
-        Common.dashTelemetry.addData("Targets reachable", "%s / %s",
-                leftTargetReachable, rightTargetReachable);
+        Common.dashTelemetry.addData("Target reachable", leftTargetReachable);
         Common.dashTelemetry.addData("Ready to shoot", isReadyToShoot());
     }
 }

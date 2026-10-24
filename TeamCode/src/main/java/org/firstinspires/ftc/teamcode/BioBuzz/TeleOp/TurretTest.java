@@ -40,7 +40,6 @@ public class TurretTest extends LinearOpMode {
     // values we change with the sticks in manual mode
     private TestMode mode = TestMode.STOP;
     private double leftAngle;
-    private double rightAngle;
 
     // old button values so holding a button only changes modes once
     private boolean lastA;
@@ -50,7 +49,6 @@ public class TurretTest extends LinearOpMode {
     private boolean lastDpadUp;
     private boolean lastDpadDown;
     private boolean lastLeftStickButton;
-    private boolean lastRightStickButton;
     private boolean lastLeftBumper;
     private String relocalizeStatus = "not tried";
 
@@ -63,7 +61,7 @@ public class TurretTest extends LinearOpMode {
         );
 
         // only makes the hardware needed for this test
-        // test the two CR servos and two analog encoders
+        // test the CR servo and analog encoder
         Follower drivetrain = Constants.createFollower(hardwareMap);
         Turret turret = new Turret(hardwareMap, drivetrain);
         Shooter shooter = new Shooter(hardwareMap);
@@ -135,7 +133,7 @@ public class TurretTest extends LinearOpMode {
                     0.0,
                     1.0
             );
-            shooter.setPower(leftFlywheelPower, rightFlywheelPower);
+            shooter.setPower(leftFlywheelPower);
 
             printTelemetry(
                     drivetrain,
@@ -170,7 +168,6 @@ public class TurretTest extends LinearOpMode {
         if (gamepad1.x && !lastX) {
             mode = TestMode.MANUAL_ANGLE;
             leftAngle = turret.getLeftAngle();
-            rightAngle = turret.getRightAngle();
         }
 
         // Y lets odo aim both turrets at the selected goal by itself
@@ -188,13 +185,9 @@ public class TurretTest extends LinearOpMode {
             turret.setAlliance(false);
         }
 
-        // pressing a stick sets that turret's angle target to zero
+        // pressing the left stick sets the turret's angle target to zero
         if (gamepad1.left_stick_button && !lastLeftStickButton) {
             leftAngle = 0.0;
-        }
-
-        if (gamepad1.right_stick_button && !lastRightStickButton) {
-            rightAngle = 0.0;
         }
 
         // save buttons for the next loop
@@ -205,7 +198,6 @@ public class TurretTest extends LinearOpMode {
         lastDpadUp = gamepad1.dpad_up;
         lastDpadDown = gamepad1.dpad_down;
         lastLeftStickButton = gamepad1.left_stick_button;
-        lastRightStickButton = gamepad1.right_stick_button;
     }
 
     private void updateTurretControls(Turret turret, double dt) {
@@ -215,9 +207,8 @@ public class TurretTest extends LinearOpMode {
                 break;
 
             case MANUAL_POWER:
-                // letting go of a stick stops that turret
-                turret.setManualPower(-gamepad1.left_stick_y * Turret.MANUAL_MAX_POWER,
-                        -gamepad1.right_stick_y * Turret.MANUAL_MAX_POWER);
+                // letting go of the stick stops the turret
+                turret.setManualPower(-gamepad1.left_stick_y * Turret.MANUAL_MAX_POWER);
                 break;
 
             case MANUAL_ANGLE:
@@ -225,10 +216,7 @@ public class TurretTest extends LinearOpMode {
                 leftAngle = Turret.normalizeDegrees(
                         leftAngle - gamepad1.left_stick_y * ANGLE_SPEED * dt
                 );
-                rightAngle = Turret.normalizeDegrees(
-                        rightAngle - gamepad1.right_stick_y * ANGLE_SPEED * dt
-                );
-                turret.setManualAngles(leftAngle, rightAngle);
+                turret.setManualAngle(leftAngle);
                 break;
 
             case ODOM_TRACKING:
@@ -247,10 +235,10 @@ public class TurretTest extends LinearOpMode {
         Common.dashTelemetry.addLine("gamepad1 B = manual turret speed");
         Common.dashTelemetry.addLine("gamepad1 X = manual angles");
         Common.dashTelemetry.addLine("gamepad1 Y = odo tracking");
-        Common.dashTelemetry.addLine("in manual the left/right sticks move each turret");
+        Common.dashTelemetry.addLine("in manual the left stick moves the turret");
         Common.dashTelemetry.addLine("gamepad1 dpad up = red down = blue");
         Common.dashTelemetry.addLine("gamepad1 left bumper = relocalize from Limelight");
-        Common.dashTelemetry.addLine("press either stick = reset that turret");
+        Common.dashTelemetry.addLine("press left stick = reset turret");
     }
 
     private void printTelemetry(
@@ -270,10 +258,9 @@ public class TurretTest extends LinearOpMode {
                 drivetrain.getPose().getX(),
                 drivetrain.getPose().getY(),
                 Math.toDegrees(drivetrain.getPose().getHeading()));
-        Common.dashTelemetry.addData("Encoder volts", "%.3f / %.3f",
-                turret.getLeftEncoderVoltage(), turret.getRightEncoderVoltage());
-        Common.dashTelemetry.addData("Manual angles", "%.1f / %.1f",
-                leftAngle, rightAngle);
+        Common.dashTelemetry.addData("Encoder volts", "%.3f",
+                turret.getLeftEncoderVoltage());
+        Common.dashTelemetry.addData("Manual angle", "%.1f", leftAngle);
         Common.dashTelemetry.addData("Left flywheel power / velocity", "%.2f / %.0f",
                 leftFlywheelPower, shooter.getLeftVelocity());
         Common.dashTelemetry.addData("Right flywheel power / velocity", "%.2f / %.0f",

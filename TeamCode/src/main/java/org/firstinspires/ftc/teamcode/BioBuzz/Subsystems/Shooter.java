@@ -119,12 +119,11 @@ public class Shooter {
     }
 
     // Independent trigger power for the hardware test; no distance calculation.
-    public void setPower(double left, double right) {
+    public void setPower(double left) {
         enabled = false;
         lastTarget = -1;
         leftShooter.motorEx.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightShooter.motorEx.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftShooter.motorEx.setPower(left);
-        rightShooter.motorEx.setPower(right);
     }
 }

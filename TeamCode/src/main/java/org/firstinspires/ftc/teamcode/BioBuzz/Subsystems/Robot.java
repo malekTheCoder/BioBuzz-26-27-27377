@@ -9,6 +9,9 @@ public final class Robot {
 
     public final Follower drivetrain;
     public final Shooter shooter;
+    public final ShooterLeft leftShooter;
+    public final ShooterRight rightShooter;
+
 
     public final Gate gateServo;
 
@@ -20,6 +23,10 @@ public final class Robot {
     public final ActionScheduler actionScheduler;
 
     public Robot(HardwareMap hardwareMap) {
+
+        leftShooter = new ShooterLeft(hardwareMap);
+        rightShooter = new ShooterRight(hardwareMap);
+
 
 
         bulkReader = new BulkReader(hardwareMap);
