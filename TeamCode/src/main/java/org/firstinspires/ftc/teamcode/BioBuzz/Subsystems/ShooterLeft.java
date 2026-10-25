@@ -17,12 +17,15 @@ public class ShooterLeft {
     public static double kD = 0.2;
     public static double kF = 12.0;
 
-    public static double LAUNCH_ANGLE = 45; // check this
-    public static double LAUNCH_HEIGHT = 0.254;
-    public static double GOAL_HEIGHT = 1.372;
-    public static double WHEEL_RADIUS = 0.048; // check this
-    public static double TRANSFER_RATIO = 0.45; // calculate this when testing
+    public static double LAUNCH_ANGLE = 12.5;
+    public static double LAUNCH_HEIGHT = 8.0 * 0.0254;
+    public static double GOAL_HEIGHT = 58.0 * 0.0254;
+    public static double WHEEL_RADIUS = 0.036;
+    public static double TRANSFER_RATIO = 0.45;
     public static double TICKS_PER_REV = 28;
+
+    public double distance;
+    public double ticks;
 
     public ShooterLeft(HardwareMap hardwareMap) {
         leftShooter = new MotorEx(hardwareMap, "shooter", Motor.GoBILDA.BARE);
@@ -68,13 +71,13 @@ public class ShooterLeft {
     }
     public void setVelo() {
         // Use the same alliance and field-half goal as the turrets.
-        double distance = robot.turret.getDistance() * 0.0254;
-        double ticks = calcVelocity(distance);
+        distance = robot.turret.getDistance() * 0.0254;
+        distance = 1 *.0254;
+        ticks = calcVelocity(distance);
         if (!Double.isFinite(ticks) || ticks < 0) {
             stop();
             return;
         }
-
         lastTarget = ticks; // atSpeed needs the speed we're actually asking for
         setLeftVelocity(ticks);
     }

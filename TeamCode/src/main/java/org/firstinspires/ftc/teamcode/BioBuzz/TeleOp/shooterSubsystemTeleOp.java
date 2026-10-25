@@ -25,7 +25,7 @@ public class shooterSubsystemTeleOp extends LinearOpMode {
             while (opModeIsActive()){
 
                 double targetTicks = TARGET_RPM * ShooterLeft.TICKS_PER_REV / 60.0; // RPM → ticks/sec
-                if (TARGET_RPM > 0) {
+                if (gamepad1.a && TARGET_RPM > 0) {
                     leftShooter.updatePIDF();
                     leftShooter.setLeftVelocity(targetTicks);
                 } else {
