@@ -188,6 +188,7 @@ public class SimpleTurretTeleOp extends LinearOpMode {
         String status;
         if (turret.isLeftControlTripped()) status = "FAULT: " + turret.getLeftFaultReason() + " (press A)";
         else if (turret.get() == Turret.TurretStates.IDLE) status = "STOPPED (press A to track)";
+        else if (turret.isPausedForDrive()) status = "WAITING FOR ROBOT TO STOP";
         else if (!turret.isLeftTargetReachable()) status = "TARGET OUT OF RANGE";
         else if (turret.isReadyToShoot()) status = "READY - on target";
         else if (moving) status = "MOVING";

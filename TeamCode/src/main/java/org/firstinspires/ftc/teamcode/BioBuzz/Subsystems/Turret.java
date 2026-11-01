@@ -46,6 +46,10 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     public static long GUARD_GRACE_MS = 700;
     public static double GUARD_GROWTH_DEG = 15.0;
     public static double SERVO_SETTLE_TIME_SECONDS = 0.20;
+    // Do not chase a moving robot with the mounted single-servo turret.
+    public static double DRIVE_PAUSE_SPEED_IN_S = 3.0;
+    public static double DRIVE_PAUSE_TURN_DEG_S = 12.0;
+    public static double DRIVE_SETTLE_SECONDS = 0.25;
 
     // Keep these until the safe mechanism/cable travel has been measured.
     public static double LEFT_MAX_CLOCKWISE_DEGREES = 180;
@@ -55,6 +59,10 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     private final AnalogInput leftEncoder;
     private final TurretPositionControl control;
     private final Supplier<Pose> robotPose;
+    private boolean pauseTrackingWhileDriving;
+    private Pose previousRobotPose;
+    private long previousRobotPoseNanos, stillSinceNanos;
+    private boolean pausedForDrive;
     private TurretStates state = TurretStates.IDLE;
     private Pose goal;
     private double leftTargetAngle, leftCommandedAngle, leftManualPower = Double.NaN, leftPower;
@@ -71,6 +79,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
 
     public Turret(HardwareMap hardwareMap, Follower drivetrain) {
         this(hardwareMap, drivetrain::getPose);
+        pauseTrackingWhileDriving = true;
     }
 
     // A bench test can supply a pretend pose without initializing drive hardware.
@@ -85,6 +94,9 @@ public class Turret extends Subsystem<Turret.TurretStates> {
 
     @Override public void set(TurretStates newState) {
         state = newState;
+        previousRobotPose = null;
+        stillSinceNanos = 0;
+        pausedForDrive = false;
         atTargetSinceNanos = 0;
         leftTargetReachable = false;
         hasTrackingRoute = false;
@@ -125,6 +137,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     public double getLeftTrackingError() { return leftCommandedAngle - control.getAngle(); }
     public boolean isLeftTargetReachable() { return leftTargetReachable; }
     public boolean isLeftControlTripped() { return control.isTripped(); }
+    public boolean isPausedForDrive() { return pausedForDrive; }
     public String getLeftFaultReason() { return control.getFaultReason(); }
     public void setContinuousTracking(boolean enabled) { continuousTracking = enabled; }
     // Per-instance stationary precision; NaN restores the existing position deadband.
@@ -219,7 +232,19 @@ public class Turret extends Subsystem<Turret.TurretStates> {
             setPower(limitManual(leftManualPower, angle));
             return;
         }
-        if (state == TurretStates.ODOM_TRACKING) updateTracking();
+        if (state == TurretStates.ODOM_TRACKING) {
+            if (pauseTrackingWhileDriving && shouldPauseForDrive(robotPose.get())) {
+                if (!pausedForDrive && !control.isTripped()) control.stop();
+                pausedForDrive = true;
+                leftTargetReachable = false;
+                atTargetSinceNanos = 0;
+                setPower(0);
+                return;
+            }
+            if (pausedForDrive && !control.isTripped()) control.stop();
+            pausedForDrive = false;
+            updateTracking();
+        }
         if (!Double.isFinite(leftTargetAngle)) { stopInvalid(); return; }
 
         double target = leftTargetAngle;
@@ -252,6 +277,35 @@ public class Turret extends Subsystem<Turret.TurretStates> {
         atTargetSinceNanos = 0;
         control.stop();
         setPower(0);
+    }
+    private boolean shouldPauseForDrive(Pose pose) {
+        long now = System.nanoTime();
+        if (previousRobotPose == null) {
+            previousRobotPose = pose;
+            previousRobotPoseNanos = now;
+            stillSinceNanos = now;
+            return true;
+        }
+        double dt = (now - previousRobotPoseNanos) / 1e9;
+        // Compare over a short window so tiny per-loop odometry noise is not
+        // mistaken for a fast robot movement.
+        if (dt < 0.10) return (now - stillSinceNanos) / 1e9 < DRIVE_SETTLE_SECONDS;
+        double distance = Math.hypot(pose.getX() - previousRobotPose.getX(),
+                pose.getY() - previousRobotPose.getY());
+        double turn = Math.abs(normalizeDegrees(Math.toDegrees(
+                pose.getHeading() - previousRobotPose.getHeading())));
+        previousRobotPose = pose;
+        previousRobotPoseNanos = now;
+        if (!Double.isFinite(distance) || !Double.isFinite(turn) || dt <= 0) {
+            stillSinceNanos = now;
+            return true;
+        }
+        if (distance / dt >= DRIVE_PAUSE_SPEED_IN_S
+                || turn / dt >= DRIVE_PAUSE_TURN_DEG_S) {
+            stillSinceNanos = now;
+            return true;
+        }
+        return (now - stillSinceNanos) / 1e9 < DRIVE_SETTLE_SECONDS;
     }
     private void updateTracking() {
         Pose robot = robotPose.get();
@@ -305,6 +359,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
         if (Common.dashTelemetry == null) return;
         Common.dashTelemetry.addLine("LEFT TURRET ONLY - point forward before Start");
         Common.dashTelemetry.addData("State", state);
+        Common.dashTelemetry.addData("Paused while driving", pausedForDrive);
         Common.dashTelemetry.addData("Alliance", Common.isRed ? "RED" : "BLUE");
         Common.dashTelemetry.addData("Goal", "(%.1f, %.1f)", goal.getX(), goal.getY());
         Common.dashTelemetry.addData("Distance", "%.1f in", getDistance());
