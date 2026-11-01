@@ -8,20 +8,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.BallTracking;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.LimelightEx;
 
 @TeleOp(name = "v1tele", group = "Main")
 public class v1tele extends LinearOpMode {
-
-    // --- Auto-intake tuning ---
-    private static final double TURN_KP = -0.02;           // make negative if it turns away from the ball
-    private static final double MAX_TURN = 0.4;
-    private static final double CLOSE_AREA = 8.0;         // set from "ball ta" telemetry at pickup distance
-    private static final double APPROACH_SPEED = 0.35;
-    private static final double APPROACH_DIRECTION = -1;  // 1 = forward, -1 = reverse
-    private static final double ALIGN_RANGE_DEG = 15.0;   // ball must be within this many degrees to drive at it
 
     private IMU imu;
 
@@ -81,13 +73,10 @@ public class v1tele extends LinearOpMode {
                     double tx = ball.getTargetXDegrees();   // + = ball is to the right
                     double ta = ball.getTargetArea();
 
-                    // turn toward the ball
-                    rx = Range.clip(TURN_KP * tx, -MAX_TURN, MAX_TURN);
+                    BallTracking.Command command = BallTracking.command(tx, ta);
+                    rx = command.turn;
                     x = 0;
-
-                    // drive at the ball only as it gets centered, so turn and drive don't cancel out
-                    double alignment = Math.max(0.0, 1.0 - Math.abs(tx) / ALIGN_RANGE_DEG);
-                    y = (ta < CLOSE_AREA) ? APPROACH_SPEED * APPROACH_DIRECTION * alignment : 0.0;
+                    y = command.forward;
 
                     autoIntake = true;
 

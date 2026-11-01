@@ -78,11 +78,14 @@ public class LimelightEx {
      */
     public LLResultTypes.ColorResult getBestBall(int pipelineIndex) {
         if (result == null || !result.isValid()
+                || result.getStaleness() >= STALENESS_TIME
                 || result.getPipelineIndex() != pipelineIndex) {
             return null;
         }
         LLResultTypes.ColorResult best = null;
         for (LLResultTypes.ColorResult c : result.getColorResults()) {
+            if (!Double.isFinite(c.getTargetXDegrees()) || !Double.isFinite(c.getTargetArea())
+                    || c.getTargetArea() <= 0) continue;
             if (best == null || c.getTargetArea() > best.getTargetArea()) best = c;
         }
         return best;
