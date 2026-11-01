@@ -72,7 +72,7 @@ public class ShooterLeft {
     public void setVelo() {
         // Use the same alliance and field-half goal as the turrets.
         distance = robot.turret.getDistance() * 0.0254;
-        distance = 1 *.0254;
+        distance = 45 *.0254;
         ticks = calcVelocity(distance);
         if (!Double.isFinite(ticks) || ticks < 0) {
             stop();
