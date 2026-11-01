@@ -21,7 +21,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     // public static final String RIGHT_ENCODER_NAME = "rightTurretEncoder";
 
     // Inches from robot center: +X forward, +Y left.
-    public static double LEFT_OFFSET_X = -7.125, LEFT_OFFSET_Y = -0.125;
+    public static double LEFT_OFFSET_X = 0.0, LEFT_OFFSET_Y = 0.0;
     public static boolean LEFT_ENCODER_REVERSED = false;
     public static boolean LEFT_SERVO_REVERSED = true;
     // Mirror the field aim into this turret's existing encoder/servo angle direction.
@@ -30,7 +30,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     public static double GEAR_RATIO = 4.782;
 
     // Your tuned encoder test values, shared with the real subsystem.
-    public static double KP = 0.02, KD = 0.0005;
+    public static double KP = 0.02, KD = 0.002;
     public static double CONTINUOUS_KD = 0.0025; // damp speed relative to a moving target
     public static double CONTINUOUS_KV = 0.002; // power per degree/second of moving target
     // A negative directional kV uses the original shared kV until calibration is saved.
@@ -42,14 +42,14 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     public static double MIN_POWER = 0.10, MAX_POWER = 0.5, MANUAL_MAX_POWER = 0.25;
     public static double READY_ANGLE_TOLERANCE_DEGREES = 1.5, RESTART_DEG = 3.0;
     public static double VEL_FILTER = 0.3;
-    public static double BOOST_STEP = 0.003, BOOST_MAX = 0.15, STALL_SPEED_DEG_S = 3.0;
+    public static double BOOST_STEP = 0.003, BOOST_MAX = 0.03, STALL_SPEED_DEG_S = 3.0;
     public static long GUARD_GRACE_MS = 700;
     public static double GUARD_GROWTH_DEG = 15.0;
     public static double SERVO_SETTLE_TIME_SECONDS = 0.20;
 
     // Keep these until the safe mechanism/cable travel has been measured.
-    public static double LEFT_MAX_CLOCKWISE_DEGREES = 30.0;
-    public static double LEFT_MAX_COUNTERCLOCKWISE_DEGREES = 30.0;
+    public static double LEFT_MAX_CLOCKWISE_DEGREES = 180;
+    public static double LEFT_MAX_COUNTERCLOCKWISE_DEGREES = 180;
 
     private final CRServo leftServo;
     private final AnalogInput leftEncoder;

@@ -19,12 +19,12 @@ import java.util.List;
 @Configurable
 public class LimelightEx {
 
-    public static long STALENESS_TIME = 100;
+    public static long STALENESS_TIME = 300;
     public static double HEADING_OFFSET = 270.0;
     public static double MAX_RELOCALIZE_JUMP_INCHES = 24.0;
 
     // Pipeline numbers (must match the Limelight web UI)
-    public static int PIPELINE_APRILTAG = 0;
+    public static int PIPELINE_APRILTAG = 7;
     public static int PIPELINE_POLLEN = 3;
     public static int PIPELINE_NECTAR_BLUE = 4;
     public static int PIPELINE_NECTAR_RED = 5;
@@ -40,6 +40,7 @@ public class LimelightEx {
 
     public LimelightEx(Limelight3A limelight) {
         this.limelight = limelight;
+        limelight.pipelineSwitch(PIPELINE_APRILTAG); // same order as the working test OpMode
         limelight.start();
     }
 
