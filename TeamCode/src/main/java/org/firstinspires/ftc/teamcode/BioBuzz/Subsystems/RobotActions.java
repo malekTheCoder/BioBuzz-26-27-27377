@@ -8,6 +8,8 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.pedropathing.geometry.Pose;
 
+import java.util.function.BooleanSupplier;
+
 public class RobotActions {
 
     // ── Goal position for distance calculations ────────────────────────────
@@ -37,6 +39,11 @@ public class RobotActions {
                 new SleepAction(timeSeconds),
                 new InstantAction(() -> robot.intake.stop())
         );
+    }
+    public static TrackBallsAction trackBalls(LimelightEx camera, boolean redAlliance,
+                                               double timeoutSeconds, BooleanSupplier active) {
+        return new TrackBallsAction(camera, robot.drivetrain, robot.intake,
+                redAlliance, timeoutSeconds, active);
     }
     // --- GATE
 

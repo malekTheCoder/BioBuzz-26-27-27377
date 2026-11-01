@@ -129,68 +129,76 @@ public class Paths {
         f = follower;
     }
 
+    private static final double FIELD_SIZE = 144.0;
+
+    private static Pose mirrorDiagonal(Pose pose) {
+        return new Pose(FIELD_SIZE - pose.getX(), FIELD_SIZE - pose.getY());
+    }
+
     public double mirrorAngleRad(double angle) {
-        return Math.PI - angle;
+        double mirrored = (angle + Math.PI) % (2 * Math.PI);
+        return mirrored < 0 ? mirrored + 2 * Math.PI : mirrored;
     }
 
     public static boolean isPathRed = true;
 
     public void mirrorAll() {
-        P_START = P_START.mirror();
-        P_SHOOT = P_SHOOT.mirror();
+        P_START = mirrorDiagonal(P_START);
+        P_SHOOT = mirrorDiagonal(P_SHOOT);
 
-        P_SIMPLE_START = P_SIMPLE_START.mirror();
-        P_SIMPLE_PATH1 = P_SIMPLE_PATH1.mirror();
-        P_SIMPLE_POINT2_START = P_SIMPLE_POINT2_START.mirror();
-        P_SIMPLE_POINT2 = P_SIMPLE_POINT2.mirror();
-        P_SIMPLE_POINT2_CONTROL1 = P_SIMPLE_POINT2_CONTROL1.mirror();
-        P_SIMPLE_POINT3_START = P_SIMPLE_POINT3_START.mirror();
-        P_SIMPLE_POINT3 = P_SIMPLE_POINT3.mirror();
-        P_SIMPLE_POINT3_CONTROL1 = P_SIMPLE_POINT3_CONTROL1.mirror();
+        P_SIMPLE_START = mirrorDiagonal(P_SIMPLE_START);
+        P_SIMPLE_PATH1 = mirrorDiagonal(P_SIMPLE_PATH1);
+        P_SIMPLE_POINT2_START = mirrorDiagonal(P_SIMPLE_POINT2_START);
+        P_SIMPLE_POINT2 = mirrorDiagonal(P_SIMPLE_POINT2);
+        P_SIMPLE_POINT2_CONTROL1 = mirrorDiagonal(P_SIMPLE_POINT2_CONTROL1);
+        P_SIMPLE_POINT3_START = mirrorDiagonal(P_SIMPLE_POINT3_START);
+        P_SIMPLE_POINT3 = mirrorDiagonal(P_SIMPLE_POINT3);
+        P_SIMPLE_POINT3_CONTROL1 = mirrorDiagonal(P_SIMPLE_POINT3_CONTROL1);
 
-        P_SH_1 = P_SH_1.mirror();
+        P_SH_1 = mirrorDiagonal(P_SH_1);
 
-        P_G_START = P_G_START.mirror();
-        P_G_COLLECT = P_G_COLLECT.mirror();
-        P_G_SHOOT = P_G_SHOOT.mirror();
+        P_G_START = mirrorDiagonal(P_G_START);
+        P_G_COLLECT = mirrorDiagonal(P_G_COLLECT);
+        P_G_SHOOT = mirrorDiagonal(P_G_SHOOT);
 
-        P_I3_CP = P_I3_CP.mirror();
-        P_I3_END = P_I3_END.mirror();
-        P_I3_WALL = P_I3_WALL.mirror();
+        P_I3_CP = mirrorDiagonal(P_I3_CP);
+        P_I3_END = mirrorDiagonal(P_I3_END);
+        P_I3_WALL = mirrorDiagonal(P_I3_WALL);
 
-        P_I6_CP = P_I6_CP.mirror();
-        P_I6_END = P_I6_END.mirror();
-        P_I6_WALL = P_I6_WALL.mirror();
+        P_I6_CP = mirrorDiagonal(P_I6_CP);
+        P_I6_END = mirrorDiagonal(P_I6_END);
+        P_I6_WALL = mirrorDiagonal(P_I6_WALL);
 
-        P_RAMP_CP = P_RAMP_CP.mirror();
-        P_RAMP_END = P_RAMP_END.mirror();
+        P_RAMP_CP = mirrorDiagonal(P_RAMP_CP);
+        P_RAMP_END = mirrorDiagonal(P_RAMP_END);
 
-        P_I9_CP = P_I9_CP.mirror();
-        P_I9_END = P_I9_END.mirror();
-        P_I9_WALL = P_I9_WALL.mirror();
-        P_I9_RETURN = P_I9_RETURN.mirror();
+        P_I9_CP = mirrorDiagonal(P_I9_CP);
+        P_I9_END = mirrorDiagonal(P_I9_END);
+        P_I9_WALL = mirrorDiagonal(P_I9_WALL);
+        P_I9_RETURN = mirrorDiagonal(P_I9_RETURN);
 
 
 
-        P_HP_CP1 = P_HP_CP1.mirror();
-        P_HP_END = P_HP_END.mirror();
-        P_HP_WALL = P_HP_WALL.mirror();
-        P_HP_RETURN = P_HP_RETURN.mirror();
+        P_HP_CP1 = mirrorDiagonal(P_HP_CP1);
+        P_HP_END = mirrorDiagonal(P_HP_END);
+        P_HP_WALL = mirrorDiagonal(P_HP_WALL);
+        P_HP_RETURN = mirrorDiagonal(P_HP_RETURN);
 
-        P_EX_CP1 = P_EX_CP1.mirror();
-        P_EX_END1 = P_EX_END1.mirror();
+        P_EX_CP1 = mirrorDiagonal(P_EX_CP1);
+        P_EX_END1 = mirrorDiagonal(P_EX_END1);
 
-        P_EX_CP2 = P_EX_CP2.mirror();
-        P_EX_END2 = P_EX_END2.mirror();
+        P_EX_CP2 = mirrorDiagonal(P_EX_CP2);
+        P_EX_END2 = mirrorDiagonal(P_EX_END2);
 
-        P_EX_CP3 = P_EX_CP3.mirror();
-        P_EX_END3 = P_EX_END3.mirror();
+        P_EX_CP3 = mirrorDiagonal(P_EX_CP3);
+        P_EX_END3 = mirrorDiagonal(P_EX_END3);
 
-        P_LEAVE_END = P_LEAVE_END.mirror();
+        P_LEAVE_END = mirrorDiagonal(P_LEAVE_END);
 
         H_0 = mirrorAngleRad(H_0);
         H_38 = mirrorAngleRad(H_38);
         H_43 = mirrorAngleRad(H_43);
+        H_90 = mirrorAngleRad(H_90);
         H_270 = mirrorAngleRad(H_270);
     }
 
