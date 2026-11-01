@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode.BioBuzz.TeleOp;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.ShooterLeft;
 
 @Config
@@ -11,20 +13,25 @@ import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.ShooterLeft;
 public class shooterSubsystemTeleOp extends LinearOpMode {
 
     // Target wheel speed in RPM (tune in dashboard)
-    public static double TARGET_RPM = 5000;
 
         ShooterLeft leftShooter;
+        public static double TARGET_RPM = 5000;
+        public static double rpm;
+        public static double targetTicks;
+        public static double ticks;
 
         @Override
         public void runOpMode() throws InterruptedException {
 
             leftShooter = new ShooterLeft(hardwareMap);
+            leftShooter.
+            Telemetry dashboardTelemetry = FtcDashboard.getInstance().getTelemetry();
 
             waitForStart();
 
             while (opModeIsActive()){
 
-                double targetTicks = TARGET_RPM * ShooterLeft.TICKS_PER_REV / 60.0; // RPM → ticks/sec
+                targetTicks = TARGET_RPM * ShooterLeft.TICKS_PER_REV / 60.0; // RPM → ticks/sec
                 if (gamepad1.a && TARGET_RPM > 0) {
                     leftShooter.updatePIDF();
                     leftShooter.setLeftVelocity(targetTicks);
@@ -32,12 +39,14 @@ public class shooterSubsystemTeleOp extends LinearOpMode {
                 leftShooter.stop();
             }
 
-            double rpm = leftShooter.getLeftVelocity() * 60.0 / ShooterLeft.TICKS_PER_REV; // ticks/sec → RPM
-            telemetry.addData("Target RPM", TARGET_RPM);
-            telemetry.addData("Velocity RPM", rpm);
-            telemetry.addData("Target (ticks/s)", targetTicks);
-            telemetry.addData("Velocity (ticks/s)", leftShooter.getLeftVelocity());
-            telemetry.update();
+            rpm = leftShooter.getLeftVelocity() * 60.0 / ShooterLeft.TICKS_PER_REV; // ticks/sec → RPM
+            ticks = leftShooter.getLeftVelocity();
+
+            dashboardTelemetry.addData("Target RPM", TARGET_RPM);
+            dashboardTelemetry.addData("Velocity RPM", rpm);
+            dashboardTelemetry.addData("Target (ticks/s)", targetTicks);
+            dashboardTelemetry.addData("Velocity (ticks/s)", ticks);
+            dashboardTelemetry.update();
         }
         leftShooter.stop();
     }
