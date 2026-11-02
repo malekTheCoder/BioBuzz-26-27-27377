@@ -30,7 +30,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     public static double GEAR_RATIO = 4.782;
 
     // Your tuned encoder test values, shared with the real subsystem.
-    public static double KP = 0.02, KD = 0.002;
+    public static double KP = 0.01, KD = 0.0035;
     public static double CONTINUOUS_KD = 0.0025; // damp speed relative to a moving target
     public static double CONTINUOUS_KV = 0.002; // power per degree/second of moving target
     // A negative directional kV uses the original shared kV until calibration is saved.
