@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.BioBuzz.Subsystems;
 import com.qualcomm.robotcore.util.Range;
 
 /** The ball-centering command shared by v1tele and autonomous. */
-public final class BallTracking {
+public final class  BallTracking {
     public static final double CLOSE_AREA = 8.0;
     private static final double TURN_KP = -0.02;
     private static final double MAX_TURN = 0.4;

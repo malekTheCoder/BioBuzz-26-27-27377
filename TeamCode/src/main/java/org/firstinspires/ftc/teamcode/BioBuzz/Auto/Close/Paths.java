@@ -4,20 +4,25 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 
 public class Paths {
 
+    // how it will work
+
+    // preshot -> garden -. flower -> shoot garden shoot flower -> thru middle cluster to old balls
+
     private final Follower f;
 
-    public PathChain shootPreload;
-
     public PathChain firstShot;
-
     public PathChain gardenCollect;
-    public PathChain gardenShot;
 
     public PathChain gardenIntake;
+
+    public PathChain gardenShot;
+
+    public PathChain clusterShotOne;
 
 
     public PathChain intake3;
@@ -56,7 +61,7 @@ public class Paths {
     // POSES (ALL CENTRALIZED)
     // =============================
 
-    public static Pose P_START = new Pose(55.53, 8.21);
+    public static Pose P_START = new Pose(55, 8);
     public static Pose P_SHOOT = new Pose(89.000, 102.000);
 
     // Simple path-only auto.
@@ -70,15 +75,15 @@ public class Paths {
     public static Pose P_SIMPLE_POINT3_CONTROL1 = new Pose(30.9374, 137.7721);
 
     // First Shot
-    public static Pose P_SH_1 = new Pose(55.62, 31.82);
+    public static Pose P_SH_1 = new Pose(55.62, 23);
 
     //Garden Intake and Shot
 
-    public static Pose P_G_START = new Pose (5.89, 10.49);
+    public static Pose P_G_START = new Pose (6, 10);
 
-    public static Pose P_G_COLLECT = new Pose (5.89, 6);
+    public static Pose P_G_COLLECT = new Pose (6, 4);
 
-    public static Pose P_G_SHOOT = new Pose (55.6, 31.8);
+    public static Pose P_G_SHOOT = new Pose (52, 138);
 
     // Intake 3
     public static Pose P_I3_CP = new Pose(79.512, 85.6);
@@ -124,6 +129,8 @@ public class Paths {
 
     public static double H_43 = Math.toRadians(43);
     public static double H_270 = Math.toRadians(270);
+
+    public static double H_300 = Math.toRadians(300);
 
     public Paths(Follower follower) {
         f = follower;
@@ -224,7 +231,7 @@ public class Paths {
                 .build();
     }
 
-    public void originalshot () {
+    public void realAuto () {
         firstShot = f.pathBuilder()
                 .addPath(new BezierLine(P_START, P_SH_1))
                 .setConstantHeadingInterpolation(H_90)
@@ -239,122 +246,10 @@ public class Paths {
                 .build();
         gardenShot = f.pathBuilder()
                 .addPath(new BezierLine(P_G_COLLECT, P_G_SHOOT))
-                .setLinearHeadingInterpolation(H_270, H_90)
+                .setLinearHeadingInterpolation(H_270, H_300) // probably edit 300?
                 .build();
-    }
-    //linear or tangent?
-    public void goal21Build() {
+        // clusterShotOne = f.pathBuilder()
+                // .addPath(new BezierLine(P_G_SHOOT, P_G_SHOOT))
 
-        // ---------- Preload ----------
-        shootPreload = f.pathBuilder()
-                .addPath(new BezierLine(P_START, P_SHOOT))
-                .setLinearHeadingInterpolation(H_0, H_38)
-                .build();
-
-        // ---------- Intake + Shoot 3 ----------
-        intake3 = f.pathBuilder()
-                .addPath(new BezierCurve(P_SHOOT, P_I3_CP, P_I3_END))
-                .setLinearHeadingInterpolation(H_38, H_0)
-                .addPath(new BezierLine(P_I3_END, P_I3_WALL))
-                .setConstantHeadingInterpolation(H_0)
-                .addPath(new BezierLine(P_I3_WALL, P_I3_END))
-                .setTangentHeadingInterpolation()
-                .setReversed()
-                .build();
-
-        shoot3 = f.pathBuilder()
-                .addPath(new BezierCurve(P_I3_END, P_I3_CP, P_SHOOT))
-                .setLinearHeadingInterpolation(H_0, H_38)
-                .build();
-
-        // ---------- Intake + Shoot 6 ----------
-        intake6 = f.pathBuilder()
-                .addPath(new BezierCurve(P_SHOOT, P_I6_CP, P_I6_END))
-                .setLinearHeadingInterpolation(H_38, H_0)
-                .addPath(new BezierLine(P_I6_END, P_I6_WALL))
-                .setTangentHeadingInterpolation()
-                .addPath(new BezierLine(P_I6_WALL, P_I6_END))
-                .setTangentHeadingInterpolation()
-                .setReversed()
-                .build();
-
-        shoot6 = f.pathBuilder()
-                .addPath(new BezierCurve(P_I6_END, P_I6_CP, P_SHOOT))
-                .setLinearHeadingInterpolation(H_0, H_38)
-                .build();
-
-        // ---------- Ramp ----------
-        unloadRamp = f.pathBuilder()
-                .addPath(new BezierCurve(P_SHOOT, P_RAMP_CP, P_RAMP_END))
-                .setLinearHeadingInterpolation(H_38, H_0)
-                .build();
-
-        // ---------- Intake + Shoot 9 ----------
-        intake9 = f.pathBuilder()
-                .addPath(new BezierCurve(P_RAMP_END, P_I9_CP, P_I9_END))
-                .setConstantHeadingInterpolation(H_0)
-                .addPath(new BezierLine(P_I9_END, P_I9_WALL))
-                .setTangentHeadingInterpolation()
-                .addPath(new BezierLine(P_I9_WALL, P_I9_RETURN))
-                .setTangentHeadingInterpolation()
-                .setReversed()
-                .build();
-
-        shoot9 = f.pathBuilder()
-                .addPath(new BezierCurve(P_I9_RETURN, P_I9_CP, P_SHOOT))
-                .setLinearHeadingInterpolation(H_0, H_38)
-                .build();
-        intakeHuman = f.pathBuilder()
-                .addPath(new BezierCurve(P_SHOOT, P_HP_CP1, P_HP_END))
-                .setLinearHeadingInterpolation(H_38, H_270)
-                .addPath(new BezierLine(P_HP_END, P_HP_WALL))
-                .setTangentHeadingInterpolation()
-                .addPath(new BezierLine(P_HP_WALL, P_HP_RETURN))
-                .setTangentHeadingInterpolation()
-                .setReversed()
-                .build();
-
-        // ---------- Shoot Human ----------
-        shootHuman = f.pathBuilder()
-                .addPath(new BezierCurve(P_HP_RETURN, P_HP_CP1, P_SHOOT))
-                .setLinearHeadingInterpolation(H_270, H_38)
-                .build();
-
-        // ---------- Extra Balls ----------
-        intakeExtra1 = f.pathBuilder()
-                .addPath(new BezierCurve(P_SHOOT, P_EX_CP1, P_EX_END1))
-                .setLinearHeadingInterpolation(H_38, H_43)
-                .build();
-
-        shootExtra1 = f.pathBuilder()
-                .addPath(new BezierCurve(P_EX_END1, P_EX_CP1, P_SHOOT))
-                .setLinearHeadingInterpolation(H_43, H_38)
-                .build();
-
-        intakeExtra2 = f.pathBuilder()
-                .addPath(new BezierCurve(P_SHOOT, P_EX_CP2, P_EX_END2))
-                .setLinearHeadingInterpolation(H_38, H_43)
-                .build();
-
-        shootExtra2 = f.pathBuilder()
-                .addPath(new BezierCurve(P_EX_END2, P_EX_CP2, P_SHOOT))
-                .setLinearHeadingInterpolation(H_43, H_38)
-                .build();
-
-        intakeExtra3 = f.pathBuilder()
-                .addPath(new BezierCurve(P_SHOOT, P_EX_CP3, P_EX_END3))
-                .setLinearHeadingInterpolation(H_38, H_43)
-                .build();
-
-        shootExtra3 = f.pathBuilder()
-                .addPath(new BezierLine(P_EX_END3, P_SHOOT))
-                .setLinearHeadingInterpolation(H_43, H_38)
-                .build();
-
-        // ---------- Leave ----------
-        leave = f.pathBuilder()
-                .addPath(new BezierLine(P_SHOOT, P_LEAVE_END))
-                .setConstantHeadingInterpolation(H_38)
-                .build();
     }
 }

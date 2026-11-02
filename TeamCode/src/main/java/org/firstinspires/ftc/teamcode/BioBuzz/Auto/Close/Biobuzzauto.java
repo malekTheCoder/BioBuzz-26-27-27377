@@ -7,12 +7,14 @@ import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.BioBuzz.Auto.AbstractAuto;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Actions;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.FollowPathAction;
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.LimelightEx;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Robot;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions;
 
@@ -20,6 +22,8 @@ import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions;
 public class Biobuzzauto extends AbstractAuto {
     private Follower f;
     private Paths path;
+    private LimelightEx ll;
+
     @Override
     protected Pose getStartPose() {
         return Paths.P_START;
@@ -35,14 +39,17 @@ public class Biobuzzauto extends AbstractAuto {
             Paths.isPathRed = !Paths.isPathRed;
             path.mirrorAll();
         }
+        // in onInit():
+        ll = new LimelightEx(hardwareMap.get(Limelight3A.class, "limelight"));
 
-        path.originalshot();   // builds firstShot, gardenCollect, gardenIntake, gardenReturn
+        path.realAuto();   // builds firstShot, gardenCollect, gardenIntake, gardenReturn
     }
 
     @Override
     protected void onRun() {
         shootPreload();
         cycle4();
+        cluster1();
     }
 
     private void shootPreload () {
@@ -97,7 +104,43 @@ public class Biobuzzauto extends AbstractAuto {
         );
         robot.actionScheduler.runBlocking();
     }
+    private void cluster1() {
+        robot.actionScheduler.addAction(
+                new SequentialAction(
+                        // 1) Set up: gate closed, flywheel spinning, turret aiming
+                        new ParallelAction(
+                                RobotActions.closeGate(),
+                                RobotActions.enableShooter(),
+                                RobotActions.startTurretTracking(),
+                                new InstantAction(() -> f.setMaxPower(0.9))   // slower near balls
+                        ),
 
+                        // 2) Look for a ball (gives up after 1.5 s)
+                        RobotActions.scanForBall(ll, LimelightEx.PIPELINE_POLLEN, 1.5),
+
+                        // 3) Turn the intake on and drive to the ball
+                        new InstantAction(() -> robot.intake.intakeElements(1.0)),
+                        RobotActions.driveToBall(ll, LimelightEx.PIPELINE_POLLEN),
+
+                        // 4) Keep intaking 0.5 s more after arriving, then stop it
+                        RobotActions.intakeAction(1.0, 0.5),
+
+                        // 5) Camera back to AprilTags (for relocalizing later)
+                        new InstantAction(() -> ll.setPipeline(LimelightEx.PIPELINE_APRILTAG)),
+
+                        // 6) Wait until turret is aimed AND flywheel is at speed
+                        new ParallelAction(
+                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
+                                RobotActions.waitForShooter()
+                        ),
+
+                        // 7) Shoot from right here
+                        RobotActions.openGateFor(1.0),
+                        new InstantAction(() -> f.setMaxPower(1))
+                )
+        );
+        robot.actionScheduler.runBlocking();
+    }
     //   private void shootPreload() {
 //        robot.actionScheduler.addAction(
 //                new SequentialAction(
