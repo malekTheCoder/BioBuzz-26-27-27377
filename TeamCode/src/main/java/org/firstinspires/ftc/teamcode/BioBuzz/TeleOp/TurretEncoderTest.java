@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 
@@ -11,6 +12,7 @@ import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Turret;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.TurretPositionControl;
 
 @TeleOp(name = "Turret Encoder Test", group = "Test")
+@Disabled
 public class TurretEncoderTest extends LinearOpMode {
     @Override public void runOpMode() {
         AnalogInput encoder = hardwareMap.get(AnalogInput.class, Turret.LEFT_ENCODER_NAME);

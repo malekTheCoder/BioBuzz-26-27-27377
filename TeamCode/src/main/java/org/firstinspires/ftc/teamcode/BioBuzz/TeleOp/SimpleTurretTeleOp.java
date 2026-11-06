@@ -183,7 +183,6 @@ public class SimpleTurretTeleOp extends LinearOpMode {
         double actual = turret.getLeftAngle();
         double target = turret.getLeftCommandedAngle();
         double offBy = turret.getLeftTrackingError(); // target minus actual
-        boolean moving = Math.abs(turret.getLeftPower()) > 0.001;
 
         String status;
         if (turret.isLeftControlTripped()) status = "FAULT: " + turret.getLeftFaultReason() + " (press A)";
@@ -191,15 +190,14 @@ public class SimpleTurretTeleOp extends LinearOpMode {
         else if (turret.isPausedForDrive()) status = "WAITING FOR ROBOT TO STOP";
         else if (!turret.isLeftTargetReachable()) status = "TARGET OUT OF RANGE";
         else if (turret.isReadyToShoot()) status = "READY - on target";
-        else if (moving) status = "MOVING";
-        else status = "SETTLED (not ready yet)";
+        else status = "WAITING FOR SERVO SETTLE";
 
         Common.dashTelemetry.addData("STATUS", status);
-        Common.dashTelemetry.addData("Turret actual (deg)", "%.1f", actual);
+        Common.dashTelemetry.addData("Turret commanded estimate (deg)", "%.1f", actual);
         Common.dashTelemetry.addData("Turret target (deg)", "%.1f", target);
         Common.dashTelemetry.addData("OFF BY (deg)", "%.1f", offBy);
         Common.dashTelemetry.addData("Turret speed (deg/s)", "%.1f", turret.getLeftSpeed());
-        Common.dashTelemetry.addData("Power", "%.2f", turret.getLeftPower());
+        Common.dashTelemetry.addData("Servo position", "%.3f", turret.getLeftPower());
         Common.dashTelemetry.addData("Goal distance (in)", "%.1f", turret.getDistance());
 
         Common.dashTelemetry.addData("Tags", visibleTags);

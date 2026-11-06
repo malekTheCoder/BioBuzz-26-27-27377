@@ -241,8 +241,8 @@ public class TurretTest extends LinearOpMode {
         Common.dashTelemetry.addLine("in manual the left stick moves the left turret");
         Common.dashTelemetry.addLine("gamepad1 dpad up = red down = blue");
         Common.dashTelemetry.addLine("gamepad1 left bumper = relocalize from Limelight");
-        Common.dashTelemetry.addLine("press left stick = target 0 (does not re-zero encoder)");
-        Common.dashTelemetry.addLine("point left turret FORWARD before Start");
+        Common.dashTelemetry.addLine("press left stick = target 0 (servo center)");
+        Common.dashTelemetry.addLine("Align horn forward at servo center before testing");
     }
 
     private void printTelemetry(
@@ -262,7 +262,7 @@ public class TurretTest extends LinearOpMode {
                 drivetrain.getPose().getX(),
                 drivetrain.getPose().getY(),
                 Math.toDegrees(drivetrain.getPose().getHeading()));
-        Common.dashTelemetry.addData("Left encoder volts", "%.3f", turret.getLeftEncoderVoltage());
+        Common.dashTelemetry.addData("Left servo position", "%.3f", turret.getLeftPower());
         Common.dashTelemetry.addData("Left manual angle", "%.1f", leftAngle);
         Common.dashTelemetry.addData("Left flywheel power / velocity", "%.2f / %.0f",
                 leftFlywheelPower, shooter.getLeftVelocity());

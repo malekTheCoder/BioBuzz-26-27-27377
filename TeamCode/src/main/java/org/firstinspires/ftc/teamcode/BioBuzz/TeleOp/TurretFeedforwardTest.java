@@ -7,6 +7,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 
@@ -18,6 +19,7 @@ import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.TurretFeedforwardCalibr
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.TurretPositionControl;
 
 @TeleOp(name = "Turret Feedforward Test", group = "Test")
+@Disabled
 public class TurretFeedforwardTest extends LinearOpMode {
     private static final String PREFS = "turret_bench_feedforward_v1";
 
