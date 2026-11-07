@@ -85,6 +85,8 @@ public class Paths {
 
     public static Pose P_G_SHOOT = new Pose (52, 138);
 
+    public static Pose P_CLUSTER_ONE = new Pose(62, 28);
+
     // Intake 3
     public static Pose P_I3_CP = new Pose(79.512, 85.6);
     public static Pose P_I3_END = new Pose(95.550, 85.6);
@@ -207,6 +209,8 @@ public class Paths {
         H_43 = mirrorAngleRad(H_43);
         H_90 = mirrorAngleRad(H_90);
         H_270 = mirrorAngleRad(H_270);
+        H_300 = mirrorAngleRad(H_300);
+
     }
 
 
@@ -248,8 +252,10 @@ public class Paths {
                 .addPath(new BezierLine(P_G_COLLECT, P_G_SHOOT))
                 .setLinearHeadingInterpolation(H_270, H_300) // probably edit 300?
                 .build();
-        // clusterShotOne = f.pathBuilder()
-                // .addPath(new BezierLine(P_G_SHOOT, P_G_SHOOT))
+        clusterShotOne = f.pathBuilder()
+                .addPath(new BezierLine(P_G_SHOOT, P_CLUSTER_ONE))
+                .setConstantHeadingInterpolation(H_300)
+                .build();
 
     }
 }
