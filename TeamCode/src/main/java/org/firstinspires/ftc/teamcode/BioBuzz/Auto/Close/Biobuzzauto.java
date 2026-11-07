@@ -49,7 +49,7 @@ public class Biobuzzauto extends AbstractAuto {
     protected void onRun() {
         shootPreload();
         cycle4();
-        cluster1();
+        //cluster1();
     }
 
     private void shootPreload () {
