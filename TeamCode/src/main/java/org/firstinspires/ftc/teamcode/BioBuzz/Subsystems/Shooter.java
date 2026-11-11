@@ -25,37 +25,47 @@ public class Shooter {
     public static double TICKS_PER_REV = 28;
     public Shooter(HardwareMap hardwareMap) {
         leftShooter = new MotorEx(hardwareMap, "leftShooterMotor", Motor.GoBILDA.BARE);
-        // Right turret/flywheel is still being built; no right hardware lookup yet.
-        // rightShooter = new MotorEx(hardwareMap, "rightShooterMotor", Motor.GoBILDA.BARE);
+        rightShooter = new MotorEx(hardwareMap, "rightShooterMotor", Motor.GoBILDA.BARE);
 
         leftShooter.motor.setDirection(DcMotorSimple.Direction.FORWARD);
         if (rightShooter != null) rightShooter.motor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         leftShooter.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
-        if (rightShooter != null) rightShooter.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
+        rightShooter.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
+
 
         leftShooter.resetEncoder();
-        if (rightShooter != null) rightShooter.resetEncoder();
+        rightShooter.resetEncoder();
 // Set velocity PIDF on both motors
         leftShooter.motorEx.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        if (rightShooter != null) rightShooter.motorEx.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightShooter.motorEx.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         updatePIDF();
     }
     // Called from TeleOp every loop so dashboard changes apply live
-    public void updatePIDF() {
-        if (rightShooter != null) rightShooter.motorEx.setPIDFCoefficients(
-                com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER,
-                new com.qualcomm.robotcore.hardware.PIDFCoefficients(kP, kI, kD, kF)
-        );
-        leftShooter.motorEx.setPIDFCoefficients(
-                com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER,
-                new com.qualcomm.robotcore.hardware.PIDFCoefficients(kP, kI, kD, kF)
-        );
-    }
+        private double lastP = Double.NaN, lastI, lastD, lastF;
+        // CHANGE: remembers the PIDF values last sent to the motors.
+
+        // Called from TeleOp every loop so dashboard changes apply live
+        public void updatePIDF() {
+            if (kP == lastP && kI == lastI && kD == lastD && kF == lastF) return;
+            // CHANGE: skips the slow hardware write when nothing changed. It still sends on the
+            // first call and whenever you edit kP/kI/kD/kF in Dashboard.
+            leftShooter.motorEx.setPIDFCoefficients(
+                    com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER,
+                    new com.qualcomm.robotcore.hardware.PIDFCoefficients(kP, kI, kD, kF)
+            );
+            rightShooter.motorEx.setPIDFCoefficients(
+                    com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER,
+                    new com.qualcomm.robotcore.hardware.PIDFCoefficients(kP, kI, kD, kF)
+            );
+            // CHANGE: removed the if-check on rightShooter, and put left first then right, matching the constructor.
+            lastP = kP; lastI = kI; lastD = kD; lastF = kF;
+            // CHANGE: records what was just sent.
+        }
+
     // Raw power — used in auto
 // Variable velocity — used in TeleOp with distance-based control
     public void setRightVelocity(double velo) {
-        if (rightShooter == null) return; // right side disabled for now
         rightShooter.motorEx.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightShooter.motorEx.setVelocity(velo);
     }
@@ -67,7 +77,7 @@ public class Shooter {
         return leftShooter.getVelocity();
     }
     public double getRightVelocity() {
-        return rightShooter == null ? 0 : rightShooter.getVelocity();
+        return rightShooter.getVelocity();
     }
 
     public static double calcVelocity(double distance) { // d= horizantal distance from goal
@@ -95,7 +105,7 @@ public class Shooter {
     }
 
     private double lastTarget = -1; // to check if its on
-    public static double SPEED_TOLERANCE_RPM = 50; // can change
+    public static double SPEED_TOLERANCE_RPM = 100; // can change
 
     public boolean atSpeed() {
         if (lastTarget <= 0) return false;
@@ -115,17 +125,19 @@ public class Shooter {
     public void stop() {
         enabled = false;
         lastTarget = -1;
-        if (rightShooter != null) rightShooter.set(0);
+        leftShooter.motorEx.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightShooter.motorEx.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightShooter.set(0);
         leftShooter.set(0);
     }
 
     // Independent trigger power for the hardware test; no distance calculation.
-    public void setPower(double left, double right) {
-        enabled = false;
-        lastTarget = -1;
-        leftShooter.motorEx.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        if (rightShooter != null) rightShooter.motorEx.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        leftShooter.motorEx.setPower(left);
-        if (rightShooter != null) rightShooter.motorEx.setPower(right);
-    }
+//    public void setPower(double left, double right) {
+//        enabled = false;
+//        lastTarget = -1;
+//        leftShooter.motorEx.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//        rightShooter.motor.setDirection(DcMotorSimple.Direction.FORWARD);
+//        leftShooter.motorEx.setPower(left);
+//        rightShooter.motorEx.setPower(left);
+//    }
 }

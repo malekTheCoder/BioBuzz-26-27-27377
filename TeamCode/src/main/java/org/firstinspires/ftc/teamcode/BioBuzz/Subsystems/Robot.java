@@ -10,7 +10,8 @@ public final class Robot {
     public final Follower drivetrain;
     public final Shooter shooter;
 
-    public final Gate gateServo;
+    public final Gate pollenServo;
+    public final Gate nectarServo;
 
     public final Intake intake;
 
@@ -29,7 +30,8 @@ public final class Robot {
 
         intake = new Intake(hardwareMap); // 2 intake wheel
 
-        gateServo = new Gate(hardwareMap);
+        pollenServo = new Gate(hardwareMap);
+        nectarServo = new Gate(hardwareMap);
 
         shooter = new Shooter(hardwareMap); // shooter wheel (2 motors)
         turret = new Turret(hardwareMap, drivetrain);
