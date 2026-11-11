@@ -8,6 +8,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
+import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Robot;
+
 
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.BallTracking;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.LimelightEx;
@@ -24,8 +27,11 @@ public class v1tele extends LinearOpMode {
         DcMotor backLeft = hardwareMap.dcMotor.get("back_left");
         DcMotor frontRight = hardwareMap.dcMotor.get("front_right");
         DcMotor backRight = hardwareMap.dcMotor.get("back_right");
-        DcMotor intake = hardwareMap.dcMotor.get("intakeMotor");
+        DcMotor intake = hardwareMap.dcMotor.get("intake");
+        DcMotor loader = hardwareMap.dcMotor.get("transfer");
         DcMotor pollenShooter = hardwareMap.dcMotor.get("pollenShooter");
+        DcMotor nectarShooter = hardwareMap.dcMotor.get("pollenShooter");
+
         imu = hardwareMap.get(IMU.class, "imu");
 
         LimelightEx ll = new LimelightEx(hardwareMap.get(Limelight3A.class, "limelight"));
@@ -38,6 +44,9 @@ public class v1tele extends LinearOpMode {
                 RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
         imu.initialize(parameters);
+
+        robot = new Robot(hardwareMap);
+
 
         waitForStart();
 
@@ -94,6 +103,34 @@ public class v1tele extends LinearOpMode {
             // --- shooter: power follows right trigger ---
             pollenShooter.setPower(gamepad1.right_trigger);
 
+            // Loader / Intake Action
+
+            if (gamepad1.a) {
+                intake.setPower(1);
+                loader.setPower(1);
+            } else {
+                intake.setPower(0);
+                loader.setPower(0);
+            }
+
+            // --- shoot: hold A ---
+            if (gamepad1.b) {
+                robot.shooter.enabled = true;
+
+                boolean ready = robot.shooter.atSpeed();
+
+                robot.pollenServo.gateMovement(ready);
+                robot.nectarServo.gateMovement(ready);
+            } else if (robot.shooter.enabled) {
+                robot.shooter.stop();
+                robot.pollenServo.gateMovement(false);
+                robot.nectarServo.gateMovement(false);
+            }
+
+            robot.run();
+            // REQUIRED every loop: updates odometry, then shooter.update() recalculates distance and velocity
+
+
             // --- mecanum math, normalized so no wheel exceeds 1.0 ---
             double fl = y + x + rx;
             double bl = y - x + rx;
@@ -116,6 +153,8 @@ public class v1tele extends LinearOpMode {
             telemetry.addData("y", y);
             telemetry.addData("Shooter power", gamepad1.right_trigger);
             telemetry.update();
+
+
         }
     }
 }
