@@ -48,6 +48,7 @@ public class SimplePathAuto extends AbstractAuto {
     }
 
     private void followPaths() {
+        f.setMaxPower(0.7);
         LimelightEx camera = new LimelightEx(hardwareMap.get(Limelight3A.class, "limelight"));
         camera.setPipeline(LimelightEx.PIPELINE_APRILTAG);
         TrackBallsAction tracking = RobotActions.trackBalls(camera, Common.isRed,
@@ -71,6 +72,8 @@ public class SimplePathAuto extends AbstractAuto {
             f.setTeleOpDrive(0, 0, 0, true);
         }
     }
+
+
 
     private Action returnToPoint3() {
         return new Action() {

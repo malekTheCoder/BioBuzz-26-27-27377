@@ -61,21 +61,24 @@ public class Paths {
     // POSES (ALL CENTRALIZED)
     // =============================
 
-    public static Pose P_START = new Pose(55, 8);
-    public static Pose P_SHOOT = new Pose(89.000, 102.000);
-
     // Simple path-only auto.
-    public static Pose P_SIMPLE_START = new Pose(54.9488, 8.7103);
-    public static Pose P_SIMPLE_PATH1 = new Pose(54.6111, 13.571);
-    public static Pose P_SIMPLE_POINT2_START = new Pose(54.6111, 13.571);
-    public static Pose P_SIMPLE_POINT2 = new Pose(6.4238, 8.0257);
-    public static Pose P_SIMPLE_POINT2_CONTROL1 = new Pose(5.748, 49.4478);
+    public static Pose P_SIMPLE_START = new Pose(54.9, 8.7103);
+    public static Pose P_SIMPLE_PATH1 = new Pose(54.9, 13.5);
+    public static Pose P_SIMPLE_POINT2_START = new Pose(54.9, 13.5);
+    public static Pose P_SIMPLE_POINT2 = new Pose(9.5, 20.0257);
+    public static Pose P_SIMPLE_POINT2_CONTROL1 = new Pose(9.5, 75.4478);
     public static Pose P_SIMPLE_POINT3_START = new Pose(6.4238, 8.0257);
     public static Pose P_SIMPLE_POINT3 = new Pose(57.2496, 125.3026);
     public static Pose P_SIMPLE_POINT3_CONTROL1 = new Pose(30.9374, 137.7721);
 
+    public static Pose P_SHOOT = new Pose(89.000, 102.000);
+
+
+
     // First Shot
-    public static Pose P_SH_1 = new Pose(55.62, 23);
+    public static Pose P_START = new Pose(55, 8);
+
+    public static Pose P_SH_1 = new Pose(60, 83);
 
     //Garden Intake and Shot
 
@@ -234,6 +237,19 @@ public class Paths {
                 .setConstantHeadingInterpolation(H_270)
                 .build();
     }
+//    public static Pose P_START = new Pose(55, 8);
+//
+//    public static Pose P_SH_1 = new Pose(55.62, 23);
+//
+//    //Garden Intake and Shot
+//
+//    public static Pose P_G_START = new Pose (6, 10);
+//
+//    public static Pose P_G_COLLECT = new Pose (6, 4);
+//
+//    public static Pose P_G_SHOOT = new Pose (52, 138);
+//
+//    public static Pose P_CLUSTER_ONE = new Pose(62, 28);
 
     public void realAuto () {
         firstShot = f.pathBuilder()

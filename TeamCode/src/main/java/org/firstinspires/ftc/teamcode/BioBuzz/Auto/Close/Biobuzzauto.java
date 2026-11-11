@@ -26,7 +26,7 @@ public class Biobuzzauto extends AbstractAuto {
 
     @Override
     protected Pose getStartPose() {
-        return Paths.P_START;
+        return Paths.P_START.withHeading(Paths.H_90);
     }
 
 
@@ -56,7 +56,7 @@ public class Biobuzzauto extends AbstractAuto {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         new ParallelAction(
-                                new InstantAction(()-> f.setMaxPower(1)),
+                                new InstantAction(()-> f.setMaxPower(0.3)),
                                 new InstantAction(() -> robot.gateServo.gateMovement(false)),
                                 RobotActions.enableShooter(),
                                 RobotActions.startTurretTracking(),
@@ -74,23 +74,25 @@ public class Biobuzzauto extends AbstractAuto {
         robot.actionScheduler.runBlocking();
     }
 
+
+
     private void cycle4() {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         new ParallelAction(
                                 new FollowPathAction(f, path.gardenCollect, true),
-                                new InstantAction(() -> f.setMaxPower(1)),
+                                new InstantAction(() -> f.setMaxPower(0.3)),
                                 RobotActions.disableShooter(),
                                 RobotActions.startTurretTracking()
                         ),
                         new ParallelAction(
                                 new FollowPathAction(f, path.gardenIntake, false),
-                                new InstantAction(() -> f.setMaxPower(.6)),
+                                new InstantAction(() -> f.setMaxPower(.3)),
                                 RobotActions.intakeAction(1,5)
                         ),
                         new ParallelAction(
                                 new FollowPathAction(f, path.gardenShot, true),
-                                new InstantAction(() -> f.setMaxPower(.9)),
+                                new InstantAction(() -> f.setMaxPower(.3)),
                                 RobotActions.enableShooter()
                                 //RobotActions.startTurretTracking()
                         ),
@@ -112,7 +114,7 @@ public class Biobuzzauto extends AbstractAuto {
                                 RobotActions.closeGate(),
                                 RobotActions.enableShooter(),
                                 RobotActions.startTurretTracking(),
-                                new InstantAction(() -> f.setMaxPower(0.9))   // slower near balls
+                                new InstantAction(() -> f.setMaxPower(0.3))   // slower near balls
                         ),
 
                         // 2) Look for a ball (gives up after 1.5 s)
