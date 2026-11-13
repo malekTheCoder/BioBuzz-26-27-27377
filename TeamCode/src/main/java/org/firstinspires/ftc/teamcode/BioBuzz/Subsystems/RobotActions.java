@@ -51,18 +51,18 @@ public class RobotActions {
     }
     // --- GATE
 
-    public static Action openGate() {return new InstantAction(() -> robot.gateServo.gateMovement(true));
-    }
-    public static Action openGateFor(double seconds) {
-        return new SequentialAction(
-                new InstantAction(() -> robot.gateServo.gateMovement(true)),    // open
-                new SleepAction(seconds),                                       // wait (non-blocking)
-                new InstantAction(() -> robot.gateServo.gateMovement(false))    // close
-        );
-    }
-    public static Action closeGate() {
-        return new InstantAction(() -> robot.gateServo.gateMovement(false));
-    }
+//    public static Action openGate() {return new InstantAction(() -> robot.gateServo.gateMovement(true));
+//    }
+//    public static Action openGateFor(double seconds) {
+//        return new SequentialAction(
+//                new InstantAction(() -> robot.gateServo.gateMovement(true)),    // open
+//                new SleepAction(seconds),                                       // wait (non-blocking)
+//                new InstantAction(() -> robot.gateServo.gateMovement(false))    // close
+//        );
+//    }
+//    public static Action closeGate() {
+//        return new InstantAction(() -> robot.gateServo.gateMovement(false));
+//    }
     public static Action startTurretTracking() {
         return new InstantAction(() -> robot.turret.resumeTracking());
     }

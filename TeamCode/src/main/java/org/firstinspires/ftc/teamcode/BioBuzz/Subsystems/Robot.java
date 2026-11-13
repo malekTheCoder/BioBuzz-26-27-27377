@@ -35,20 +35,20 @@ public final class Robot {
 
         shooter = new Shooter(hardwareMap); // shooter wheel (2 motors)
         turret = new Turret(hardwareMap, drivetrain);
-        turret.stow();
+        // turret.stow();
     }
 
     public void run() {
         bulkReader.bulkRead();
         drivetrain.update();
-        turret.run();
+        //turret.run();
         actionScheduler.run();
         shooter.update(); // enabled distance tracking must run every loop
     }
 
-    public void printTelemetry() {
-        turret.printTelemetry();
+//    public void printTelemetry() {
+        //turret.printTelemetry();
     }
 
 
-}
+

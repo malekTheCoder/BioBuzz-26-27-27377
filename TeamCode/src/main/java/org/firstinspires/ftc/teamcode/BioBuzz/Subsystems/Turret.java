@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 public class Turret extends Subsystem<Turret.TurretStates> {
     public enum TurretStates { IDLE, ODOM_TRACKING, MANUAL }
 
-    public static final String LEFT_SERVO_NAME = "leftTurretServo";
+     public static final String LEFT_SERVO_NAME = "leftTurretServo";
     // Set these to the measured, safe turret travel before enabling tracking.
     public static double LEFT_MAX_CLOCKWISE_DEGREES = 20;
     public static double LEFT_MAX_COUNTERCLOCKWISE_DEGREES = 20;

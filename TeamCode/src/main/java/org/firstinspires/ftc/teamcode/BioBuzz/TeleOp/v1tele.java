@@ -30,12 +30,12 @@ public class v1tele extends LinearOpMode {
         DcMotor intake = hardwareMap.dcMotor.get("intake");
         DcMotor loader = hardwareMap.dcMotor.get("transfer");
         DcMotor pollenShooter = hardwareMap.dcMotor.get("pollenShooter");
-        DcMotor nectarShooter = hardwareMap.dcMotor.get("pollenShooter");
+        DcMotor nectarShooter = hardwareMap.dcMotor.get("nectarShooter");
 
         imu = hardwareMap.get(IMU.class, "imu");
 
-        LimelightEx ll = new LimelightEx(hardwareMap.get(Limelight3A.class, "limelight"));
-        ll.setPipeline(LimelightEx.PIPELINE_APRILTAG);
+        //LimelightEx ll = new LimelightEx(hardwareMap.get(Limelight3A.class, "limelight"));
+       // ll.setPipeline(LimelightEx.PIPELINE_APRILTAG);
 
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -73,41 +73,36 @@ public class v1tele extends LinearOpMode {
 
             boolean autoIntake = false;
 
-            if (ballPipeline != -1) {
-                ll.setPipeline(ballPipeline);
-                ll.update();
-                LLResultTypes.ColorResult ball = ll.getBestBall(ballPipeline);
+//            if (ballPipeline != -1) {
+//                ll.setPipeline(ballPipeline);
+//                ll.update();
+//                LLResultTypes.ColorResult ball = ll.getBestBall(ballPipeline);
+//
+//                if (ball != null) {
+//                    double tx = ball.getTargetXDegrees();   // + = ball is to the right
+//                    double ta = ball.getTargetArea();
+//
+//                    BallTracking.Command command = BallTracking.command(tx, ta);
+//                    rx = command.turn;
+//                    x = 0;
+//                    y = command.forward;
+//
+//                    autoIntake = true;
+//
+//                    telemetry.addData("ball tx", tx);
+//                    telemetry.addData("ball ta", ta);
+//                }
+//                // no ball seen: driver keeps manual control
+//            } else {
+//                ll.setPipeline(LimelightEx.PIPELINE_APRILTAG);
+//            }
 
-                if (ball != null) {
-                    double tx = ball.getTargetXDegrees();   // + = ball is to the right
-                    double ta = ball.getTargetArea();
-
-                    BallTracking.Command command = BallTracking.command(tx, ta);
-                    rx = command.turn;
-                    x = 0;
-                    y = command.forward;
-
-                    autoIntake = true;
-
-                    telemetry.addData("ball tx", tx);
-                    telemetry.addData("ball ta", ta);
-                }
-                // no ball seen: driver keeps manual control
-            } else {
-                ll.setPipeline(LimelightEx.PIPELINE_APRILTAG);
-            }
-
-            // --- intake: runs while A is held or auto-tracking a ball ---
-            intake.setPower((gamepad1.a || autoIntake) ? 1.0 : 0.0);
-
-            // --- shooter: power follows right trigger ---
-            pollenShooter.setPower(gamepad1.right_trigger);
 
             // Loader / Intake Action
 
             if (gamepad1.a) {
                 intake.setPower(1);
-                loader.setPower(1);
+                loader.setPower(.5);
             } else {
                 intake.setPower(0);
                 loader.setPower(0);
@@ -125,6 +120,17 @@ public class v1tele extends LinearOpMode {
                 robot.shooter.stop();
                 robot.pollenServo.gateMovement(false);
                 robot.nectarServo.gateMovement(false);
+            }
+
+            if (gamepad1.x) {
+                loader.setPower(.3);
+            } else {
+                loader.setPower(0);
+            }
+            if (gamepad1.y) {
+                intake.setPower(1);
+            } else {
+                intake.setPower(0);
             }
 
             robot.run();
@@ -147,11 +153,17 @@ public class v1tele extends LinearOpMode {
             // --- telemetry ---
             telemetry.addData("Tracking", trackingName);
             telemetry.addData("Target locked", autoIntake);
-            telemetry.addData("Balls seen", ll.getBallCount());
-            telemetry.addData("Pipeline", ll.getResult() != null ? ll.getResult().getPipelineIndex() : -1);
+//            telemetry.addData("Balls seen", ll.getBallCount());
+//            telemetry.addData("Pipeline", ll.getResult() != null ? ll.getResult().getPipelineIndex() : -1);
             telemetry.addData("rx", rx);
             telemetry.addData("y", y);
             telemetry.addData("Shooter power", gamepad1.right_trigger);
+            telemetry.addData("Shooter on", robot.shooter.enabled);
+            telemetry.addData("Distance to goal (in)", "%.1f", robot.turret.getDistance());
+            telemetry.addData("Target velocity", "%.0f", robot.shooter.lastTarget);
+            telemetry.addData("Nectar velocity", "%.0f", robot.shooter.getNectarVelocity());
+            telemetry.addData("Pollen velocity", "%.0f", robot.shooter.getPollenVelocity());
+            telemetry.addData("At speed", robot.shooter.atSpeed());
             telemetry.update();
 
 

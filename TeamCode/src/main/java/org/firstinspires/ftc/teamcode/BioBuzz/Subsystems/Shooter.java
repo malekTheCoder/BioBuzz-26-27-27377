@@ -4,6 +4,7 @@ import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -12,20 +13,20 @@ public class Shooter {
     private MotorEx nectarShooter;
     private MotorEx pollenShooter;
     // Tune these in FTC Dashboard
-    public static double kP = 50.0; // tune
+    public static double kP = 2; // tune
     public static double kI = 0.0;
     public static double kD = 0.0;
-    public static double kF = 12.0;
+    public static double kF = 0.0;
 
     public static double LAUNCH_ANGLE = 45; // check this
     public static double LAUNCH_HEIGHT = 0.254;
     public static double GOAL_HEIGHT = 1.372;
     public static double WHEEL_RADIUS = 0.048; // check this
-    public static double TRANSFER_RATIO = 0.45; // calculate this when testing
+    public static double TRANSFER_RATIO = 0.45; // calculate this when testing dont touch this
     public static double TICKS_PER_REV = 28;
     public Shooter(HardwareMap hardwareMap) {
-        nectarShooter = new MotorEx(hardwareMap, "leftShooterMotor", Motor.GoBILDA.BARE);
-        pollenShooter = new MotorEx(hardwareMap, "rightShooterMotor", Motor.GoBILDA.BARE);
+        nectarShooter = new MotorEx(hardwareMap, "nectarShooter", Motor.GoBILDA.BARE);
+        pollenShooter = new MotorEx(hardwareMap, "pollenShooter", Motor.GoBILDA.BARE);
 
         nectarShooter.motor.setDirection(DcMotorSimple.Direction.FORWARD);
         if (pollenShooter != null) pollenShooter.motor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -41,6 +42,7 @@ public class Shooter {
         pollenShooter.motorEx.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         updatePIDF();
     }
+
     // Called from TeleOp every loop so dashboard changes apply live
     private double lastP = Double.NaN, lastI, lastD, lastF;
     // CHANGE: remembers the PIDF values last sent to the motors.
@@ -101,12 +103,12 @@ public class Shooter {
         if (!Double.isFinite(ticks) || ticks < 0) { stop(); return; }
 
         lastTarget = ticks; // atSpeed needs the speed we're actually asking for
-        setNectarVelocity(ticks);
-        setPollenVelocity(ticks);
+        setNectarVelocity(ticks - 1000);
+        setPollenVelocity(ticks - 1000);
     }
 
 
-    private double lastTarget = -1; // to check if its on
+    public double lastTarget = -1; // to check if its on
     public static double SPEED_TOLERANCE_RPM = 100; // can change
 
     public boolean atSpeed() {
