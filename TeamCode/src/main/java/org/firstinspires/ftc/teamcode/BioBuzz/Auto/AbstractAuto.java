@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions;
 public abstract class AbstractAuto extends LinearOpMode {
     protected final void update() {
         robot.run();
-        robot.printTelemetry();
+        //robot.printTelemetry();
     }
 
     @Override
