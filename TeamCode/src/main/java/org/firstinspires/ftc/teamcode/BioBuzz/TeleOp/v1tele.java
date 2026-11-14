@@ -24,7 +24,12 @@ public class v1tele extends LinearOpMode {
     public static double TOLERANCE_TPS = 70;
     public static double MAX_TPS = 2000;
 
+    public static double POLLEN_KF = 1.0 / 2600;
+    public static double POLLEN_KP = 0.001;
     private IMU imu;
+
+    private boolean gatePosition = false;
+
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -111,18 +116,22 @@ public class v1tele extends LinearOpMode {
 
             // ---- Drive inputs ----
 
-            double y = -gamepad1.left_stick_y;
-            double x = gamepad1.left_stick_x;
-            double rx = gamepad1.right_stick_x;
+            double y = gamepad1.left_stick_y;
+            double x = -gamepad1.left_stick_x;
+            double rx = -gamepad1.right_stick_x;
 
             // ---- Intake and loader ----
 
-            if (gamepad1.a) {
+            if (gamepad1.right_bumper) {
                 intake.setPower(1);
                 loader.setPower(1);
+            } else if (gamepad1.left_bumper) {
+                intake.setPower(-1);
+                loader.setPower(-1);
             } else {
                 intake.setPower(0);
                 loader.setPower(0);
+
             }
 
             // ---- Flywheel target adjustments ----
@@ -171,7 +180,7 @@ public class v1tele extends LinearOpMode {
 
             // ---- Read flywheel velocities ----
 
-            double pollenVelo = pollenShooter.getVelocity();
+            double pollenVelo = -pollenShooter.getVelocity();
             double nectarVelo = nectarShooter.getVelocity();
 
             boolean atSpeed = false;
@@ -182,14 +191,12 @@ public class v1tele extends LinearOpMode {
             // ---- Shooting ----
 
             // Hold B = velocity control
+            // Hold B = velocity control
             if (gamepad1.b) {
 
                 if (!velocityMode) {
 
-                    pollenShooter.setMode(
-                            DcMotor.RunMode.RUN_USING_ENCODER
-                    );
-
+                    // Pollen stays in RUN_WITHOUT_ENCODER; the code below controls it.
                     nectarShooter.setMode(
                             DcMotor.RunMode.RUN_USING_ENCODER
                     );
@@ -198,30 +205,25 @@ public class v1tele extends LinearOpMode {
                     lastPower = Double.NaN;
                 }
 
-                // Pollen gets a NEGATIVE target.
-                // Nectar keeps its original POSITIVE target.
-                pollenShooter.setVelocity(pollenVelocityCommand);
+                // Pollen: speed control in code, never reverse.
+                double pollenPower = POLLEN_KF * POLLEN_TARGET
+                        + POLLEN_KP * (POLLEN_TARGET - pollenVelo);
+                pollenPower = Math.max(0, Math.min(1, pollenPower));
+                pollenShooter.setPower(pollenPower);
+
+                // Nectar: hub's built-in velocity control.
                 nectarShooter.setVelocity(NECTAR_TARGET);
 
-                // Check both flywheels against their signed targets.
                 atSpeed = POLLEN_TARGET > 0
                         && NECTAR_TARGET > 0
-                        && Math.abs(
-                        pollenVelo - pollenVelocityCommand
-                ) <= TOLERANCE_TPS
-                        && Math.abs(
-                        nectarVelo - NECTAR_TARGET
-                ) <= TOLERANCE_TPS;
+                        && Math.abs(pollenVelo - POLLEN_TARGET) <= TOLERANCE_TPS
+                        && Math.abs(nectarVelo - NECTAR_TARGET) <= TOLERANCE_TPS;
 
-                // Gates are still manually controlled with Y.
+                telemetry.addData("Pollen power (B)", pollenPower);
 
             } else {
 
                 if (velocityMode) {
-
-                    pollenShooter.setMode(
-                            DcMotor.RunMode.RUN_WITHOUT_ENCODER
-                    );
 
                     nectarShooter.setMode(
                             DcMotor.RunMode.RUN_WITHOUT_ENCODER
@@ -252,75 +254,76 @@ public class v1tele extends LinearOpMode {
             // Hold Y to open both gates.
             // Release Y to close both gates.
 
-            if (!gamepad1.b) {
-
-                if (gamepad1.y) {
-
-                    pollenGate.setPosition(GATE_OPEN);
-                    nectarGate.setPosition(GATE_OPEN);
-
-                } else if (lastY) {
-
-                    pollenGate.setPosition(GATE_CLOSED);
-                    nectarGate.setPosition(GATE_CLOSED);
+            if (gamepad1.xWasPressed()) {
+                if (gatePosition == false) {
+                    gatePosition = true;
+                } else if (gatePosition == true) {
+                    gatePosition = false;
                 }
             }
 
-            lastY = gamepad1.y;
+            if (gatePosition = true) {
+                pollenGate.setPosition(GATE_OPEN);
+                nectarGate.setPosition(GATE_OPEN);
+            } else if (gatePosition = false) {
+                pollenGate.setPosition(GATE_CLOSED);
+                nectarGate.setPosition(GATE_CLOSED);
+                // ---- Mecanum drive ----
+            }
 
-            // ---- Mecanum drive ----
+                double fl = y + x + rx;
+                double bl = y - x + rx;
+                double fr = y - x - rx;
+                double br = y + x - rx;
 
-            double fl = y + x + rx;
-            double bl = y - x + rx;
-            double fr = y - x - rx;
-            double br = y + x - rx;
+                double max = Math.max(
+                        1.0,
+                        Math.max(
+                                Math.max(Math.abs(fl), Math.abs(bl)),
+                                Math.max(Math.abs(fr), Math.abs(br))
+                        )
+                );
 
-            double max = Math.max(
-                    1.0,
-                    Math.max(
-                            Math.max(Math.abs(fl), Math.abs(bl)),
-                            Math.max(Math.abs(fr), Math.abs(br))
-                    )
-            );
+                frontLeft.setPower(fl / max);
+                backLeft.setPower(bl / max);
+                frontRight.setPower(fr / max);
+                backRight.setPower(br / max);
 
-            frontLeft.setPower(fl / max);
-            backLeft.setPower(bl / max);
-            frontRight.setPower(fr / max);
-            backRight.setPower(br / max);
+                // ---- Telemetry ----
 
-            // ---- Telemetry ----
+                telemetry.addData("rx", rx);
+                telemetry.addData("y", y);
 
-            telemetry.addData("rx", rx);
-            telemetry.addData("y", y);
+                telemetry.addData("Velocity mode (B)", velocityMode);
+                telemetry.addData("Trigger power", gamepad1.right_trigger);
 
-            telemetry.addData("Velocity mode (B)", velocityMode);
-            telemetry.addData("Trigger power", gamepad1.right_trigger);
+                telemetry.addData(
+                        "D-pad adjusting",
+                        editPollen ? "POLLEN" : "NECTAR"
+                );
 
-            telemetry.addData(
-                    "D-pad adjusting",
-                    editPollen ? "POLLEN" : "NECTAR"
-            );
+                telemetry.addData("Pollen target", POLLEN_TARGET);
+                telemetry.addData(
+                        "Pollen velocity command",
+                        pollenVelocityCommand
+                );
+                telemetry.addData("Pollen velocity", pollenVelo);
 
-            telemetry.addData("Pollen target", POLLEN_TARGET);
-            telemetry.addData(
-                    "Pollen velocity command",
-                    pollenVelocityCommand
-            );
-            telemetry.addData("Pollen velocity", pollenVelo);
+                telemetry.addData("Nectar target", NECTAR_TARGET);
+                telemetry.addData("Nectar velocity", nectarVelo);
 
-            telemetry.addData("Nectar target", NECTAR_TARGET);
-            telemetry.addData("Nectar velocity", nectarVelo);
+                telemetry.addData("At speed", atSpeed);
 
-            telemetry.addData("At speed", atSpeed);
+                telemetry.addData("status of gate", gatePosition);
 
-            telemetry.addData(
-                    "Gate pollen / nectar pos",
-                    "%.2f / %.2f",
-                    pollenGate.getPosition(),
-                    nectarGate.getPosition()
-            );
+                telemetry.addData(
+                        "Gate pollen / nectar pos",
+                        "%.2f / %.2f",
+                        pollenGate.getPosition(),
+                        nectarGate.getPosition()
+                );
 
-            telemetry.update();
+                telemetry.update();
+            }
         }
     }
-}
