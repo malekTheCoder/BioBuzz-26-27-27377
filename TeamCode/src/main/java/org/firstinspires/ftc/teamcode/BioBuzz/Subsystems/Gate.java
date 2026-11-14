@@ -18,7 +18,7 @@ public class Gate {
 
     public void pollenGate(boolean open) {
         if (open == true) {
-            pollenServo.setPosition(1); // choose this
+            pollenServo.setPosition(0.3); // choose this
         } else {
             pollenServo.setPosition(0); // choose this
         }
@@ -26,7 +26,7 @@ public class Gate {
 
     public void nectarGate(boolean open) {
         if (open == true) {
-            nectarServo.setPosition(1); // choose this
+            nectarServo.setPosition(0.3); // choose this
         } else {
             nectarServo.setPosition(0); // choose this
         }

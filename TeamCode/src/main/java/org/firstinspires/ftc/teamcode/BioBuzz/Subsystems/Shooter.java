@@ -13,7 +13,7 @@ public class Shooter {
     private MotorEx nectarShooter;
     private MotorEx pollenShooter;
     // Tune these in FTC Dashboard
-    public static double kP = 2; // tune
+    public static double kP = 0; // tune
     public static double kI = 0.0;
     public static double kD = 0.0;
     public static double kF = 0.0;
@@ -24,6 +24,17 @@ public class Shooter {
     public static double WHEEL_RADIUS = 0.048; // check this
     public static double TRANSFER_RATIO = 0.45; // calculate this when testing dont touch this
     public static double TICKS_PER_REV = 28;
+
+    // Distance-based shooting is commented out for now; this is the ticks/sec it subtracted.
+    public static double VELO_OFFSET = 1000;
+    // Velocity controller targets in ticks/sec, one per flywheel. Edit in Dashboard or from the TeleOp D-pad.
+    public static double POLLEN_TARGET_TPS = 1800;
+    public static double NECTAR_TARGET_TPS = 1800;
+
+    // Raw power mode bookkeeping, so we only write to the hub when something changes.
+    private boolean rawPower = false;
+    private double lastRawPower = Double.NaN;
+
     public Shooter(HardwareMap hardwareMap) {
         nectarShooter = new MotorEx(hardwareMap, "nectarShooter", Motor.GoBILDA.BARE);
         pollenShooter = new MotorEx(hardwareMap, "pollenShooter", Motor.GoBILDA.BARE);
@@ -97,25 +108,57 @@ public class Shooter {
     }
 
     public void setVelo() {
-        // Use the same alliance and field-half goal as the turrets.
-        double distance = robot.turret.getDistance() * 0.0254;
-        double ticks = calcVelocity(distance);
-        if (!Double.isFinite(ticks) || ticks < 0) { stop(); return; }
+        // Fixed-speed velocity controller for now (no turret or pose needed).
+        runAt(POLLEN_TARGET_TPS, NECTAR_TARGET_TPS);
 
-        lastTarget = ticks; // atSpeed needs the speed we're actually asking for
-        setNectarVelocity(ticks - 1000);
-        setPollenVelocity(ticks - 1000);
+        // Distance-based shooting, commented out for now. Uncomment these lines (and delete the
+        // runAt call above) to bring it back:
+        // double distance = robot.turret.getDistance() * 0.0254;
+        // double ticks = calcVelocity(distance);
+        // if (!Double.isFinite(ticks) || ticks < 0) { stop(); return; }
+        // runAt(Math.max(0, ticks - VELO_OFFSET), Math.max(0, ticks - VELO_OFFSET));
+    }
+
+    // Commands each flywheel and records the SAME numbers atSpeed() checks against.
+    // (Before, the motors got ticks - 1000 but atSpeed compared to ticks, so it could never be true.)
+    private void runAt(double pollenTps, double nectarTps) {
+        rawPower = false; // the velocity setters switch the motors back to RUN_USING_ENCODER
+        pollenTps = Math.max(0, pollenTps);
+        nectarTps = Math.max(0, nectarTps);
+        lastPollenTarget = pollenTps;
+        lastNectarTarget = nectarTps;
+        lastTarget = Math.max(pollenTps, nectarTps); // "controller is running" flag for older code
+        setPollenVelocity(pollenTps);
+        setNectarVelocity(nectarTps);
+    }
+
+    // Raw power for both flywheels (-1..1), no velocity control. Does not touch `enabled`,
+    // so call it only while the velocity controller is off.
+    public void setPower(double power) {
+        power = Math.max(-1, Math.min(1, power));
+        if (rawPower && power == lastRawPower) return; // nothing changed, skip the hub write
+        if (!rawPower) {
+            nectarShooter.motorEx.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            pollenShooter.motorEx.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            rawPower = true;
+        }
+        lastTarget = lastPollenTarget = lastNectarTarget = -1; // atSpeed() is only meaningful in velocity mode
+        lastRawPower = power;
+        nectarShooter.motorEx.setPower(power);
+        pollenShooter.motorEx.setPower(power);
     }
 
 
-    public double lastTarget = -1; // to check if its on
+    public double lastTarget = -1; // to check if its on (higher of the two targets)
+    public double lastPollenTarget = -1, lastNectarTarget = -1; // what each flywheel is commanded
     public static double SPEED_TOLERANCE_RPM = 100; // can change
 
+    // True when BOTH flywheels are within tolerance of their OWN target.
     public boolean atSpeed() {
         if (lastTarget <= 0) return false;
         double tol = SPEED_TOLERANCE_RPM * TICKS_PER_REV / 60.0;   // RPM → ticks/sec
-        return Math.abs(getNectarVelocity()  - lastTarget) <= tol
-                && (pollenShooter == null || Math.abs(getPollenVelocity() - lastTarget) <= tol);
+        return Math.abs(getNectarVelocity() - lastNectarTarget) <= tol
+                && Math.abs(getPollenVelocity() - lastPollenTarget) <= tol;
     }
     public boolean enabled = false;
 
@@ -128,7 +171,9 @@ public class Shooter {
 
     public void stop() {
         enabled = false;
-        lastTarget = -1;
+        lastTarget = lastPollenTarget = lastNectarTarget = -1;
+        rawPower = true;     // stop() leaves the motors in RUN_WITHOUT_ENCODER at zero power
+        lastRawPower = 0;
         nectarShooter.motorEx.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         pollenShooter.motorEx.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         pollenShooter.set(0);

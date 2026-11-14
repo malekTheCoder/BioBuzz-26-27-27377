@@ -132,7 +132,7 @@
 //                    1.0
 //            );
 //            double rightFlywheelPower = 0.0; // right flywheel disabled for now
-//            //shooter.setPower(leftFlywheelPower, rightFlywheelPower);
+//            shooter.setPower(leftFlywheelPower, rightFlywheelPower);
 //
 //            printTelemetry(
 //                    drivetrain,
@@ -265,8 +265,8 @@
 //        Common.dashTelemetry.addData("Left servo position", "%.3f", turret.getLeftPower());
 //        Common.dashTelemetry.addData("Left manual angle", "%.1f", leftAngle);
 //        Common.dashTelemetry.addData("Left flywheel power / velocity", "%.2f / %.0f",
-//                leftFlywheelPower, shooter.getNectarVelocity());
+//                leftFlywheelPower, shooter.getLeftVelocity());
 //        // Right flywheel telemetry disabled while the right turret is being built.
-//        //turret.printTelemetry();
+//        turret.printTelemetry();
 //    }
 //}

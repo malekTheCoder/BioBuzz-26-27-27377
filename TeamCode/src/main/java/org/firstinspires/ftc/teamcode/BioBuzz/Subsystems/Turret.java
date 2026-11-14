@@ -17,13 +17,13 @@ public class Turret extends Subsystem<Turret.TurretStates> {
 
      public static final String LEFT_SERVO_NAME = "leftTurretServo";
     // Set these to the measured, safe turret travel before enabling tracking.
-    public static double LEFT_MAX_CLOCKWISE_DEGREES = 20;
-    public static double LEFT_MAX_COUNTERCLOCKWISE_DEGREES = 20;
+    public static double LEFT_MAX_CLOCKWISE_DEGREES = 190;
+    public static double LEFT_MAX_COUNTERCLOCKWISE_DEGREES = 190;
     // Servo travel in degrees from position 0 to 1; check the actual servo specification.
-    public static double SERVO_TRAVEL_DEGREES = 180;
+    public static double SERVO_TRAVEL_DEGREES = 300;
     public static double SERVO_FORWARD_POSITION = 0.5;
     public static boolean LEFT_SERVO_REVERSED = true;
-    public static boolean LEFT_AIM_REVERSED = true;
+    public static boolean LEFT_AIM_REVERSED = false;
     public static double LEFT_OFFSET_X = 0, LEFT_OFFSET_Y = 0;
     public static double READY_ANGLE_TOLERANCE_DEGREES = 2;
     public static double SERVO_SETTLE_TIME_SECONDS = 0.35;
