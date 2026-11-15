@@ -49,10 +49,10 @@ public class SimplePathAuto extends AbstractAuto {
 
     private void followPaths() {
         f.setMaxPower(0.7);
-        LimelightEx camera = new LimelightEx(hardwareMap.get(Limelight3A.class, "limelight"));
-        camera.setPipeline(LimelightEx.PIPELINE_APRILTAG);
-        TrackBallsAction tracking = RobotActions.trackBalls(camera, Common.isRed,
-                6.0, this::opModeIsActive);
+//        LimelightEx camera = new LimelightEx(hardwareMap.get(Limelight3A.class, "limelight"));
+//        camera.setPipeline(LimelightEx.PIPELINE_APRILTAG);
+        //TrackBallsAction tracking = RobotActions.trackBalls(camera, Common.isRed,
+                //6.0, this::opModeIsActive);
         try {
             robot.actionScheduler.addAction(
                 new SequentialAction(
@@ -60,14 +60,14 @@ public class SimplePathAuto extends AbstractAuto {
                         new SleepAction(3.0),
                         new FollowPathAction(f, path.simplePath2, true),
                         new FollowPathAction(f, path.simplePath3, true),
-                        tracking,
+                        //tracking,
                         returnToPoint3()
                 )
             );
             robot.actionScheduler.runBlocking();
         } finally {
-            tracking.stop();
-            camera.stop();
+            //tracking.stop();
+            //camera.stop();
             f.startTeleopDrive(true);
             f.setTeleOpDrive(0, 0, 0, true);
         }

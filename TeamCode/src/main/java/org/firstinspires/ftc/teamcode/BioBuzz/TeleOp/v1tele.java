@@ -194,6 +194,9 @@ public class v1tele extends LinearOpMode {
             // Hold B = velocity control
             if (gamepad1.b) {
 
+                intake.setPower(1);
+                loader.setPower(1);
+
                 if (!velocityMode) {
 
                     // Pollen stays in RUN_WITHOUT_ENCODER; the code below controls it.
@@ -232,8 +235,8 @@ public class v1tele extends LinearOpMode {
                     velocityMode = false;
                     lastPower = Double.NaN;
 
-                    pollenGate.setPosition(GATE_CLOSED);
-                    nectarGate.setPosition(GATE_CLOSED);
+//                    pollenGate.setPosition(GATE_CLOSED);
+//                    nectarGate.setPosition(GATE_CLOSED);
                 }
 
                 // Right trigger = raw power mode
@@ -246,6 +249,8 @@ public class v1tele extends LinearOpMode {
                     nectarShooter.setPower(power);
 
                     lastPower = power;
+
+
                 }
             }
 
@@ -254,21 +259,29 @@ public class v1tele extends LinearOpMode {
             // Hold Y to open both gates.
             // Release Y to close both gates.
 
-            if (gamepad1.xWasPressed()) {
-                if (gatePosition == false) {
-                    gatePosition = true;
-                } else if (gatePosition == true) {
-                    gatePosition = false;
-                }
-            }
+//            if (gamepad1.xWasPressed()) {
+//                if (!gatePosition) {
+//                    gatePosition = true;
+//                } else if (gatePosition) {
+//                    gatePosition = false;
+//
+//            }
+//
+//            if (gatePosition = true) {
+//                pollenGate.setPosition(GATE_OPEN);
+//                nectarGate.setPosition(GATE_OPEN);
+//            } else if (gatePosition = false) {
+//                pollenGate.setPosition(GATE_CLOSED);
+//                nectarGate.setPosition(GATE_CLOSED);
+//                // ---- Mecanum drive ----
+//            }
 
-            if (gatePosition = true) {
+            if (gamepad1.left_trigger > .1) {
                 pollenGate.setPosition(GATE_OPEN);
                 nectarGate.setPosition(GATE_OPEN);
-            } else if (gatePosition = false) {
+            } else {
                 pollenGate.setPosition(GATE_CLOSED);
                 nectarGate.setPosition(GATE_CLOSED);
-                // ---- Mecanum drive ----
             }
 
                 double fl = y + x + rx;
@@ -315,8 +328,10 @@ public class v1tele extends LinearOpMode {
                 telemetry.addData("At speed", atSpeed);
 
                 telemetry.addData("status of gate", gatePosition);
+            telemetry.addData("x", gamepad1.x);
 
-                telemetry.addData(
+
+            telemetry.addData(
                         "Gate pollen / nectar pos",
                         "%.2f / %.2f",
                         pollenGate.getPosition(),
