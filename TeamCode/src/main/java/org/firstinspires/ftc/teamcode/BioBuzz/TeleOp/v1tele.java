@@ -1,6 +1,8 @@
 
 package org.firstinspires.ftc.teamcode.BioBuzz.TeleOp;
 
+import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -14,6 +16,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Shooter;
 
 @Config
 @TeleOp(name = "v1tele", group = "Main")
@@ -141,46 +145,8 @@ public class v1tele extends LinearOpMode {
             // D-pad up/down = +/- 100
             // Hold left trigger = +/- 25
 
-            if (gamepad1.dpad_left && !lastLeft) {
-                editPollen = true;
-            }
 
-            if (gamepad1.dpad_right && !lastRight) {
-                editPollen = false;
-            }
-
-            double step = gamepad1.left_trigger > 0.5 ? 25 : 100;
-
-            double delta = 0;
-
-            if (gamepad1.dpad_up && !lastUp) {
-                delta = step;
-            }
-
-            if (gamepad1.dpad_down && !lastDown) {
-                delta = -step;
-            }
-
-            if (editPollen) {
-                POLLEN_TARGET = Math.max(
-                        0,
-                        Math.min(MAX_TPS, POLLEN_TARGET + delta)
-                );
-            } else {
-                NECTAR_TARGET = Math.max(
-                        0,
-                        Math.min(MAX_TPS, NECTAR_TARGET + delta)
-                );
-            }
-
-            lastUp = gamepad1.dpad_up;
-            lastDown = gamepad1.dpad_down;
-            lastLeft = gamepad1.dpad_left;
-            lastRight = gamepad1.dpad_right;
-
-            // ---- Read flywheel velocities ----
-
-            double pollenVelo = -pollenShooter.getVelocity();
+            double pollenVelo = pollenShooter.getVelocity();
             double nectarVelo = nectarShooter.getVelocity();
 
             boolean atSpeed = false;
@@ -188,72 +154,21 @@ public class v1tele extends LinearOpMode {
             // Pollen motor reads negative, so its target is negative too.
             double pollenVelocityCommand = -POLLEN_TARGET;
 
-            // ---- Shooting ----
+            double distance = robot.turret.getDistance();
+
+
 
             // Hold B = velocity control
             // Hold B = velocity control
             if (gamepad1.b) {
+                double target = Shooter.getIdealVelocity(distance);
+                robot.shooter.setPollenVelocity(target);
 
-                intake.setPower(1);
-                loader.setPower(1);
-
-                if (!velocityMode) {
-
-                    // Pollen stays in RUN_WITHOUT_ENCODER; the code below controls it.
-                    nectarShooter.setMode(
-                            DcMotor.RunMode.RUN_USING_ENCODER
-                    );
-
-                    velocityMode = true;
-                    lastPower = Double.NaN;
-                }
-
-                // Pollen: speed control in code, never reverse.
-                double pollenPower = POLLEN_KF * POLLEN_TARGET
-                        + POLLEN_KP * (POLLEN_TARGET - pollenVelo);
-                pollenPower = Math.max(0, Math.min(1, pollenPower));
-                pollenShooter.setPower(pollenPower);
-
-                // Nectar: hub's built-in velocity control.
-                nectarShooter.setVelocity(NECTAR_TARGET);
-
-                atSpeed = POLLEN_TARGET > 0
-                        && NECTAR_TARGET > 0
-                        && Math.abs(pollenVelo - POLLEN_TARGET) <= TOLERANCE_TPS
-                        && Math.abs(nectarVelo - NECTAR_TARGET) <= TOLERANCE_TPS;
-
-                telemetry.addData("Pollen power (B)", pollenPower);
-
-            } else {
-
-                if (velocityMode) {
-
-                    nectarShooter.setMode(
-                            DcMotor.RunMode.RUN_WITHOUT_ENCODER
-                    );
-
-                    velocityMode = false;
-                    lastPower = Double.NaN;
-
-//                    pollenGate.setPosition(GATE_CLOSED);
-//                    nectarGate.setPosition(GATE_CLOSED);
-                }
-
-                // Right trigger = raw power mode
-                double power = gamepad1.right_trigger > 0.05
-                        ? gamepad1.right_trigger
-                        : 0;
-
-                if (power != lastPower) {
-                    pollenShooter.setPower(power);
-                    nectarShooter.setPower(power);
-
-                    lastPower = power;
-
-
+                if (pollenVelo - target < 100 || pollenVelo - target > 100) {
+                    pollenGate.setPosition(GATE_OPEN);
+                    nectarGate.setPosition(GATE_OPEN);
                 }
             }
-
             // ---- Manual gate control ----
 
             // Hold Y to open both gates.
@@ -341,4 +256,5 @@ public class v1tele extends LinearOpMode {
                 telemetry.update();
             }
         }
+
     }
