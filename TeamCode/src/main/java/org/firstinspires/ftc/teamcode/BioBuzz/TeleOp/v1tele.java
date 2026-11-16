@@ -32,6 +32,8 @@ public class v1tele extends LinearOpMode {
     public static double POLLEN_KP = 0.001;
     private IMU imu;
 
+    public double target = 0;
+
     private boolean gatePosition = false;
 
 
@@ -151,8 +153,7 @@ public class v1tele extends LinearOpMode {
 
             boolean atSpeed = false;
 
-            // Pollen motor reads negative, so its target is negative too.
-            double pollenVelocityCommand = -POLLEN_TARGET;
+
 
             double distance = robot.turret.getDistance();
 
@@ -169,6 +170,17 @@ public class v1tele extends LinearOpMode {
                     nectarGate.setPosition(GATE_OPEN);
                 }
             }
+
+            if (gamepad1.dpad_up){
+                target += 100;
+            }
+
+            if (gamepad1.dpad_down){
+                target -= 100;
+            }
+
+
+
             // ---- Manual gate control ----
 
             // Hold Y to open both gates.
@@ -231,10 +243,7 @@ public class v1tele extends LinearOpMode {
                 );
 
                 telemetry.addData("Pollen target", POLLEN_TARGET);
-                telemetry.addData(
-                        "Pollen velocity command",
-                        pollenVelocityCommand
-                );
+
                 telemetry.addData("Pollen velocity", pollenVelo);
 
                 telemetry.addData("Nectar target", NECTAR_TARGET);
