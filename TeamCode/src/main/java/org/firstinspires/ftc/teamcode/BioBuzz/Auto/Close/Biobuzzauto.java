@@ -58,14 +58,14 @@ public class Biobuzzauto extends AbstractAuto {
                         new ParallelAction(
                                 new InstantAction(()-> f.setMaxPower(0.3)),
                                 //new InstantAction(() -> robot.gateServo.gateMovement(false)),
-                                RobotActions.enableShooter(),
+                                //RobotActions.enableShooter(),
                                 RobotActions.startTurretTracking(),
 
                                 new FollowPathAction(f, path.firstShot, true)
                         ),
                         new ParallelAction(
-                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
-                                RobotActions.waitForShooter()
+                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot())
+                                //RobotActions.waitForShooter()
                         )
                         //RobotActions.openGateFor(1.0)
                         // change this to however long we want to keep gate open
@@ -82,7 +82,7 @@ public class Biobuzzauto extends AbstractAuto {
                         new ParallelAction(
                                 new FollowPathAction(f, path.gardenCollect, true),
                                 new InstantAction(() -> f.setMaxPower(0.3)),
-                                RobotActions.disableShooter(),
+                                //RobotActions.disableShooter(),
                                 RobotActions.startTurretTracking()
                         ),
                         new ParallelAction(
@@ -92,13 +92,13 @@ public class Biobuzzauto extends AbstractAuto {
                         ),
                         new ParallelAction(
                                 new FollowPathAction(f, path.gardenShot, true),
-                                new InstantAction(() -> f.setMaxPower(.3)),
-                                RobotActions.enableShooter()
+                                new InstantAction(() -> f.setMaxPower(.3))
+                                //RobotActions.enableShooter()
                                 //RobotActions.startTurretTracking()
                         ),
                         new ParallelAction(
-                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
-                                RobotActions.waitForShooter()
+                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot())
+                                //RobotActions.waitForShooter()
                         )
                         //RobotActions.openGateFor(1.0)
 
@@ -112,7 +112,7 @@ public class Biobuzzauto extends AbstractAuto {
                         // 1) Set up: gate closed, flywheel spinning, turret aiming
                         new ParallelAction(
                                // RobotActions.closeGate(),
-                                RobotActions.enableShooter(),
+                                //RobotActions.enableShooter(),
                                 RobotActions.startTurretTracking(),
                                 new InstantAction(() -> f.setMaxPower(0.3))   // slower near balls
                         ),
@@ -132,8 +132,8 @@ public class Biobuzzauto extends AbstractAuto {
 
                         // 6) Wait until turret is aimed AND flywheel is at speed
                         new ParallelAction(
-                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
-                                RobotActions.waitForShooter()
+                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot())
+                                //obotActions.waitForShooter()
                         ),
 
                         // 7) Shoot from right here

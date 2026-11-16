@@ -81,30 +81,30 @@ public class RobotActions {
 
     // ── SHOOTER ───────────────────────────────────────────────────────────
     // starts both flywheels with raw power
-    public static Action startShooter(double power) {
-        return new InstantAction(() -> robot.shooter.setVelo());
-    }
-    public static Action enableShooter() {
-        return new InstantAction(() -> robot.shooter.enabled = true);
-    }
-
-    public static Action disableShooter() {
-        return new InstantAction(() -> {
-            robot.shooter.enabled = false;
-            robot.shooter.stop();
-        });
-    }
-
-    public static Action waitForShooter() {
-        return new Actions.RunnableAction(() -> !robot.shooter.atSpeed());
-    }
+//    public static Action startShooter(double power) {
+//        return new InstantAction(() -> robot.shooter.setVelo());
+//    }
+//    public static Action enableShooter() {
+//        return new InstantAction(() -> robot.shooter.enabled = true);
+//    }
+//
+//    public static Action disableShooter() {
+//        return new InstantAction(() -> {
+//            robot.shooter.enabled = false;
+//            robot.shooter.stop();
+//        });
+//    }
+//
+//    public static Action waitForShooter() {
+//        return new Actions.RunnableAction(() -> !robot.shooter.atSpeed());
+//    }
 
     /**
      * Far-range version — higher target velocity, longer spin-up window.
      */
-    public static Action startShooterFar(double power) {
-        return startShooter(power);
-    }
+    //public static Action startShooterFar(double power) {
+        //return startShooter(power);
+    //}
 
     // separate power for each turret flywheel
 //    public static Action setFlywheelPower(double leftPower, double rightPower) {
@@ -126,13 +126,13 @@ public class RobotActions {
 //    }
 
     // ── STOP EVERYTHING ───────────────────────────────────────────────────
-    public static Action stopAll() {
-        return new InstantAction(() -> {
-            robot.intake.stop();
-            robot.shooter.stop();
-            robot.turret.stow();
-        });
-    }
+//    public static Action stopAll() {
+//        return new InstantAction(() -> {
+//            robot.intake.stop();
+//            robot.shooter.stop();
+//            robot.turret.stow();
+//        });
+//    }
     // ── BALL PICKUP (Limelight) ─────────────────────────────────────────
     public static double LL_HEIGHT = 10;  // lens height minus ball-center height (in) ← MEASURE
     public static double LL_ANGLE  = 20;  // how far the LL tilts down (deg)          ← MEASURE

@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Robot;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Shooter;
 
 @Config
@@ -116,6 +117,8 @@ public class v1tele extends LinearOpMode {
 
         double lastPower = Double.NaN;
 
+        robot = new Robot(hardwareMap);
+
         waitForStart();
 
         while (opModeIsActive()) {
@@ -128,17 +131,17 @@ public class v1tele extends LinearOpMode {
 
             // ---- Intake and loader ----
 
-            if (gamepad1.right_bumper) {
-                intake.setPower(1);
-                loader.setPower(1);
-            } else if (gamepad1.left_bumper) {
-                intake.setPower(-1);
-                loader.setPower(-1);
-            } else {
-                intake.setPower(0);
-                loader.setPower(0);
-
-            }
+//            if (gamepad1.right_bumper) {
+//                intake.setPower(1);
+//                loader.setPower(1);
+//            } else if (gamepad1.left_bumper) {
+//                intake.setPower(-1);
+//                loader.setPower(-1);
+//            } else {
+//                intake.setPower(0);
+//                loader.setPower(0);
+//
+//            }
 
             // ---- Flywheel target adjustments ----
 
@@ -155,9 +158,15 @@ public class v1tele extends LinearOpMode {
 
 
 
-            double distance = robot.turret.getDistance();
+            double distance = 40;
 
+            if (gamepad1.rightBumperWasPressed()) {
+                distance += 5;
+            } else if (gamepad1.leftBumperWasPressed()) {
+                distance -= 5;
+            }
 
+            // hi 
 
             // Hold B = velocity control
             // Hold B = velocity control
@@ -169,13 +178,15 @@ public class v1tele extends LinearOpMode {
                     pollenGate.setPosition(GATE_OPEN);
                     nectarGate.setPosition(GATE_OPEN);
                 }
+                intake.setPower(1);
+                loader.setPower(1);
             }
 
-            if (gamepad1.dpad_up){
+            if (gamepad1.dpadUpWasPressed()){
                 target += 100;
             }
 
-            if (gamepad1.dpad_down){
+            if (gamepad1.dpadDownWasPressed()){
                 target -= 100;
             }
 
@@ -242,17 +253,16 @@ public class v1tele extends LinearOpMode {
                         editPollen ? "POLLEN" : "NECTAR"
                 );
 
-                telemetry.addData("Pollen target", POLLEN_TARGET);
 
-                telemetry.addData("Pollen velocity", pollenVelo);
 
-                telemetry.addData("Nectar target", NECTAR_TARGET);
+                telemetry.addData(" target", target);
                 telemetry.addData("Nectar velocity", nectarVelo);
 
                 telemetry.addData("At speed", atSpeed);
 
                 telemetry.addData("status of gate", gatePosition);
             telemetry.addData("x", gamepad1.x);
+            telemetry.addData("distance", distance);
 
 
             telemetry.addData(
