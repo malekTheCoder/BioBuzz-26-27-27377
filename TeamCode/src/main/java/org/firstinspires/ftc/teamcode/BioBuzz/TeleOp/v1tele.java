@@ -158,7 +158,7 @@ public class v1tele extends LinearOpMode {
 
 
 
-            double distance = 40;
+            double distance = robot.turret.getDistance();
 
             if (gamepad1.rightBumperWasPressed()) {
                 distance += 5;
@@ -174,12 +174,18 @@ public class v1tele extends LinearOpMode {
                 double target = Shooter.getIdealVelocity(distance);
                 robot.shooter.setPollenVelocity(target);
 
-                if (pollenVelo - target < 100 || pollenVelo - target > 100) {
+                if (Math.abs(target - pollenVelo) < 100) {
                     pollenGate.setPosition(GATE_OPEN);
                     nectarGate.setPosition(GATE_OPEN);
+                    intake.setPower(1);
+                    loader.setPower(1);
+                } else {
+                robot.shooter.setPollenVelocity(0);
+                pollenGate.setPosition(GATE_CLOSED);
+                nectarGate.setPosition(GATE_CLOSED);
+                intake.setPower(0);
+                loader.setPower(0);
                 }
-                intake.setPower(1);
-                loader.setPower(1);
             }
 
             if (gamepad1.dpadUpWasPressed()){

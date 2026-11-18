@@ -14,7 +14,7 @@ public final class Robot {
     public final Gate nectarServo;
 
     public final Intake intake;
-
+    public final Transfer transfer;
     public final Turret turret;
 
     public final BulkReader bulkReader;
@@ -27,6 +27,7 @@ public final class Robot {
         drivetrain = Constants.createFollower(hardwareMap);
         actionScheduler = new ActionScheduler();
 
+        transfer = new Transfer(hardwareMap);
 
         intake = new Intake(hardwareMap); // 2 intake wheel
 
