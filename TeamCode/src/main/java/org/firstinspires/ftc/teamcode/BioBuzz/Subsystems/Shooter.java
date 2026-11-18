@@ -93,16 +93,16 @@ public class Shooter {
         return pollenShooter.getVelocity();
     }
     public static double getIdealVelocity(double distance) {
-        if (distance < 7.5) {
-            return 100;
+        if (distance < 2.5) {
+            return 1000;
+        } else if (distance < 4.5) {
+            return 1500;
+        } else if (distance < 7.5) {
+            return 1700;
         } else if (distance < 12.5) {
-            return 150;
-        } else if (distance < 17.5) {
-            return 200;
-        } else if (distance < 22.5) {
-            return 250;
+            return 1900;
         } else {
-            return 300;
+            return 2100;
         }
     }
 

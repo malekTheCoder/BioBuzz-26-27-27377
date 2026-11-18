@@ -44,6 +44,44 @@ public class RobotActions {
                 new InstantAction(() -> robot.intake.stop())
         );
     }
+    public static Action loaderAction(double power, double timeSeconds) {
+        return new SequentialAction(
+                new InstantAction(() -> robot.transfer.loadElements(power)),
+                new SleepAction(timeSeconds),
+                new InstantAction(() -> robot.transfer.stop())
+        );
+    }
+
+    // ── Shooter ────────────────────────────────────────────────────────────
+
+    // ── SHOOTER ───────────────────────────────────────────────────────────
+    // ── SHOOTER ───────────────────────────────────────────────────────────
+    private static double shotVelocity = 0;
+
+    public static Action shootAction(double feedSeconds) {
+        return new SequentialAction(
+                new InstantAction(() -> {
+                    shotVelocity = Shooter.getIdealVelocity(getDistanceToGoal());
+                    robot.shooter.setPollenVelocity(shotVelocity);
+                }),
+                new Actions.RunnableAction(() ->
+                        Math.abs(shotVelocity - robot.shooter.getPollenVelocity()) > 100),
+                // 3. open the gate and feed
+                new InstantAction(() -> {
+                    robot.pollenServo.pollenGate(true);
+                    robot.intake.intakeElements(1);
+                    robot.transfer.loadElements(1);
+                }),
+                new SleepAction(feedSeconds),
+                // 4. shut everything off
+                new InstantAction(() -> {
+                    robot.pollenServo.pollenGate(false);
+                    robot.intake.stop();
+                    robot.shooter.setPollenVelocity(0);
+                })
+        );
+    }
+
     public static TrackBallsAction trackBalls(LimelightEx camera, boolean redAlliance,
                                                double timeoutSeconds, BooleanSupplier active) {
         return new TrackBallsAction(camera, robot.drivetrain, robot.intake,

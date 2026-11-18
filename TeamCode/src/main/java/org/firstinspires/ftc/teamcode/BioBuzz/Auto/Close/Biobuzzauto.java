@@ -57,15 +57,13 @@ public class Biobuzzauto extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new InstantAction(()-> f.setMaxPower(0.3)),
-                                //new InstantAction(() -> robot.gateServo.gateMovement(false)),
-                                //RobotActions.enableShooter(),
                                 RobotActions.startTurretTracking(),
 
                                 new FollowPathAction(f, path.firstShot, true)
                         ),
                         new ParallelAction(
-                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot())
-                                //RobotActions.waitForShooter()
+                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
+                                RobotActions.shootAction(3)
                         )
                         //RobotActions.openGateFor(1.0)
                         // change this to however long we want to keep gate open
@@ -88,19 +86,19 @@ public class Biobuzzauto extends AbstractAuto {
                         new ParallelAction(
                                 new FollowPathAction(f, path.gardenIntake, false),
                                 new InstantAction(() -> f.setMaxPower(.3)),
-                                RobotActions.intakeAction(1,5)
+                                RobotActions.intakeAction(1,3),
+                                RobotActions.loaderAction(1, 3)
                         ),
                         new ParallelAction(
                                 new FollowPathAction(f, path.gardenShot, true),
-                                new InstantAction(() -> f.setMaxPower(.3))
+                                new InstantAction(() -> f.setMaxPower(.3)),
                                 //RobotActions.enableShooter()
-                                //RobotActions.startTurretTracking()
+                                RobotActions.startTurretTracking()
                         ),
                         new ParallelAction(
-                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot())
-                                //RobotActions.waitForShooter()
+                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
+                                RobotActions.shootAction(3)
                         )
-                        //RobotActions.openGateFor(1.0)
 
                 )
         );
