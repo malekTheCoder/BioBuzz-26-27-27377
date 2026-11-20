@@ -44,6 +44,7 @@ public class BigBlackAuto extends AbstractAuto {
     @Override
     protected void onRun() {
         preload();
+        restOfIt();
     }
 
     private void preload (){
