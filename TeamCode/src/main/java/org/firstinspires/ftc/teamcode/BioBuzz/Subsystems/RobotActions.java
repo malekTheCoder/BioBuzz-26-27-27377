@@ -44,14 +44,52 @@ public class RobotActions {
                 new InstantAction(() -> robot.intake.stop())
         );
     }
+    public static Action loaderAction(double power, double timeSeconds) {
+        return new SequentialAction(
+                new InstantAction(() -> robot.transfer.loadElements(power)),
+                new SleepAction(timeSeconds),
+                new InstantAction(() -> robot.transfer.stop())
+        );
+    }
+
+    // ── Shooter ────────────────────────────────────────────────────────────
+
+    // ── SHOOTER ───────────────────────────────────────────────────────────
+    // ── SHOOTER ───────────────────────────────────────────────────────────
+    private static double shotVelocity = 0;
+
+    public static Action shootAction(double feedSeconds) {
+        return new SequentialAction(
+                new InstantAction(() -> {
+                    shotVelocity = Shooter.getIdealVelocity(getDistanceToGoal());
+                    robot.shooter.setPollenVelocity(shotVelocity);
+                }),
+                new Actions.RunnableAction(() ->
+                        Math.abs(shotVelocity - robot.shooter.getPollenVelocity()) > 100),
+                // 3. open the gate and feed
+                new InstantAction(() -> {
+                    robot.pollenServo.pollenGate(true);
+                    robot.intake.intakeElements(1);
+                    robot.transfer.loadElements(1);
+                }),
+                new SleepAction(feedSeconds),
+                // 4. shut everything off
+                new InstantAction(() -> {
+                    robot.pollenServo.pollenGate(false);
+                    robot.intake.stop();
+                    robot.shooter.setPollenVelocity(0);
+                })
+        );
+    }
+
     public static TrackBallsAction trackBalls(LimelightEx camera, boolean redAlliance,
-                                               double timeoutSeconds, BooleanSupplier active) {
+                                              double timeoutSeconds, BooleanSupplier active) {
         return new TrackBallsAction(camera, robot.drivetrain, robot.intake,
                 redAlliance, timeoutSeconds, active);
     }
     // --- GATE
 
-//    public static Action openGate() {return new InstantAction(() -> robot.gateServo.gateMovement(true));
+    //    public static Action openGate() {return new InstantAction(() -> robot.gateServo.gateMovement(true));
 //    }
 //    public static Action openGateFor(double seconds) {
 //        return new SequentialAction(
@@ -103,7 +141,7 @@ public class RobotActions {
      * Far-range version — higher target velocity, longer spin-up window.
      */
     //public static Action startShooterFar(double power) {
-        //return startShooter(power);
+    //return startShooter(power);
     //}
 
     // separate power for each turret flywheel

@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.FollowPathAction;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Robot;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions;
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Shooter;
 
 @Autonomous (name = "BioV1Auto")
 public class BigBlackAuto extends AbstractAuto {
@@ -49,19 +50,17 @@ public class BigBlackAuto extends AbstractAuto {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         new ParallelAction(
-                                new InstantAction(()-> f.setMaxPower(1)),
-                                new InstantAction(()-> robot.gateServo.gateMovement(false)),
-                                RobotActions.enableShooter(),
+                                new InstantAction(() -> f.setMaxPower(1)),
+                                new InstantAction(() -> robot.pollenServo.pollenGate(false)),
+                                RobotActions.shootAction(3.0),
                                 RobotActions.startTurretTracking(),
 
                                 new FollowPathAction(f, path.path1, true)
                         ),
                         new ParallelAction(
                                 new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
-                                RobotActions.waitForShooter()
-                        ),
-                        RobotActions.openGateFor(2.0)
-
+                                RobotActions.shootAction(3.0)
+                        )
                 )
         );
         robot.actionScheduler.runBlocking();
@@ -73,7 +72,6 @@ public class BigBlackAuto extends AbstractAuto {
                         new ParallelAction(
                                 new FollowPathAction(f, path.path2, true),
                                 new InstantAction(() -> f.setMaxPower(1)),
-                                RobotActions.disableShooter(),
                                 RobotActions.startTurretTracking()
                         ),
                         new ParallelAction(
@@ -83,10 +81,24 @@ public class BigBlackAuto extends AbstractAuto {
                         ),
                         new ParallelAction(
                                 new FollowPathAction(f, path.path4, true),
-                                new InstantAction(() -> f.setMaxPower(0.8)),
-                                RobotActions.enableShooter()
+                                new InstantAction(() -> f.setMaxPower(0.8))
                         ),
+                        new ParallelAction(
+                                new FollowPathAction(f, path.path5, true),
+                                new InstantAction(() -> f.setMaxPower(0.7)),
+                                RobotActions.shootAction(3.0)
+                        ),
+                        new ParallelAction(
+                                new FollowPathAction(f, path.path6, true),
+                                new InstantAction(() -> f.setMaxPower(0.7)),
+                                RobotActions.intakeAction(1, 4)
+                        ),
+                        new ParallelAction(
+                                new FollowPathAction(f, path.path7),
+                                new InstantAction(() -> f.setMaxPower(0.6)),
+                                RobotActions.shootAction(3.0)
                         )
+                )
         );
     }
 }
