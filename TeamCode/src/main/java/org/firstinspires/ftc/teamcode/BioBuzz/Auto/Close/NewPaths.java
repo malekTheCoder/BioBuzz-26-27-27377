@@ -81,11 +81,12 @@ public class NewPaths {
         P_3 = rotatePose(P_3);
 
         P_4 = rotatePose(P_4);
-        P_4 = rotatePose(P_4);
 
         P_5 = rotatePose(P_5);
 
         P_6 = rotatePose(P_6);
+
+        P_7 = rotatePose(P_7);
 
         H_90 = rotateAngleRad(H_90);
         H_180 = rotateAngleRad(H_180);

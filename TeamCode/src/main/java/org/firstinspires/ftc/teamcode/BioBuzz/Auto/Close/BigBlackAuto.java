@@ -18,13 +18,15 @@ import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Robot;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Shooter;
 
+import java.nio.file.Path;
+
 @Autonomous (name = "BigBlackAuto")
 public class BigBlackAuto extends AbstractAuto {
     private Follower f;
     private NewPaths path;
     @Override
     protected Pose getStartPose() {
-        return NewPaths.P_START;
+        return NewPaths.getStartPose();
     }
 
 
@@ -52,16 +54,15 @@ public class BigBlackAuto extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new InstantAction(() -> f.setMaxPower(1)),
-                                new InstantAction(() -> robot.pollenServo.pollenGate(false)),
-                                RobotActions.shootAction(3.0),
-                                RobotActions.startTurretTracking(),
+                                //new InstantAction(() -> robot.pollenServo.pollenGate(false)),
+                                //RobotActions.shootAction(3.0),
 
                                 new FollowPathAction(f, path.path1, true)
-                        ),
-                        new ParallelAction(
-                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
-                                RobotActions.shootAction(3.0)
                         )
+//                        new ParallelAction(
+//                                //new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
+//                                //RobotActions.shootAction(3.0)
+//                        )
                 )
         );
         robot.actionScheduler.runBlocking();
@@ -101,5 +102,6 @@ public class BigBlackAuto extends AbstractAuto {
                         )
                 )
         );
+        robot.actionScheduler.runBlocking();
     }
 }

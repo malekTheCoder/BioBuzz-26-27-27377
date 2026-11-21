@@ -15,6 +15,7 @@ public final class Robot {
 
     public final Intake intake;
 
+    public final Transfer transfer;
     public final Turret turret;
 
     public final BulkReader bulkReader;
@@ -31,6 +32,7 @@ public final class Robot {
         intake = new Intake(hardwareMap); // 2 intake wheel
 
         pollenServo = new Gate(hardwareMap);
+        transfer = new Transfer(hardwareMap);
         nectarServo = new Gate(hardwareMap);
 
         shooter = new Shooter(hardwareMap); // shooter wheel (2 motors)
