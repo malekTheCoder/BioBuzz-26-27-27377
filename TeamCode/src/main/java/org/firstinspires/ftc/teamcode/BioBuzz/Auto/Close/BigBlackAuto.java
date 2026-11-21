@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Robot;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Shooter;
 
-@Autonomous (name = "BioV1Auto")
+@Autonomous (name = "BigBlackAuto")
 public class BigBlackAuto extends AbstractAuto {
     private Follower f;
     private NewPaths path;
