@@ -1,9 +1,12 @@
 package org.firstinspires.ftc.teamcode.BioBuzz.TeleOp;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.IMU;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Gate;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Transfer;
 
@@ -14,6 +17,7 @@ public class BasicTeleop extends OpMode {
     private DcMotor intake;
     private Transfer transfer;
     private Gate gate;
+    private IMU imu;
 
     // Toggle states
     private boolean intakeOn = false;
@@ -30,9 +34,16 @@ public class BasicTeleop extends OpMode {
         rearRight = hardwareMap.get(DcMotor.class, "back_right");
         frontRight = hardwareMap.get(DcMotor.class, "front_right");
 
-        intake = hardwareMap.get(DcMotor.class, "intakeMotor");
+        intake = hardwareMap.get(DcMotor.class, "intake");
         transfer = new Transfer(hardwareMap);
         gate = new Gate(hardwareMap);
+
+        imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        imu.initialize(parameters);
+        imu.resetYaw();
 
         gate.gateMovement(false); // start closed
     }
@@ -40,21 +51,33 @@ public class BasicTeleop extends OpMode {
     @Override
     public void loop() {
 
-        // ---------- Drive ----------
-        double forward = -gamepad1.left_stick_y; // left stick Y: forward / backward
-        double turn = gamepad1.right_stick_x;    // right stick X: turning
+        // ---------- Field-centric drive ----------
+        double y = -gamepad1.left_stick_y; // left stick Y: forward / backward
+        double x = gamepad1.left_stick_x;  // left stick X: strafe left / right
+        double rx = gamepad1.right_stick_x; // right stick X: turning
 
-        double leftPower = forward + turn;
-        double rightPower = forward - turn;
+        // Options button: reset heading (point robot away from you, then press)
+        if (gamepad1.options) {
+            imu.resetYaw();
+        }
 
-        double max = Math.max(1.0, Math.max(Math.abs(leftPower), Math.abs(rightPower)));
-        leftPower /= max;
-        rightPower /= max;
+        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-        frontLeft.setPower(leftPower);
-        rearLeft.setPower(leftPower);
-        frontRight.setPower(rightPower);
-        rearRight.setPower(rightPower);
+        // Rotate the stick direction by the robot's heading
+        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+        rotX *= 1.1; // fix imperfect strafing
+
+        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+        double frontLeftPower = (rotY + rotX + rx) / denominator;
+        double backLeftPower = (rotY - rotX + rx) / denominator;
+        double frontRightPower = (rotY - rotX - rx) / denominator;
+        double backRightPower = (rotY + rotX - rx) / denominator;
+
+        frontLeft.setPower(frontLeftPower);
+        rearLeft.setPower(backLeftPower);
+        frontRight.setPower(frontRightPower);
+        rearRight.setPower(backRightPower);
 
         // ---------- Right bumper: toggle intake + transfer ----------
         if (gamepad1.right_bumper && !lastRightBumper) {
@@ -77,6 +100,7 @@ public class BasicTeleop extends OpMode {
         }
         lastY = gamepad1.y;
 
+        telemetry.addData("Heading (deg)", Math.toDegrees(botHeading));
         telemetry.addData("Intake + Transfer", intakeOn ? "ON" : "OFF");
         telemetry.addData("Gate", gateOpen ? "OPEN" : "CLOSED");
         telemetry.update();

@@ -40,7 +40,7 @@ public class BigBlackAuto extends AbstractAuto {
             path.mirrorAll();
         }
 
-        path.autoNewPaths();   // builds firstShot, gardenCollect, gardenIntake, gardenReturn
+        path.autoNewPaths();
     }
 
     @Override
@@ -73,8 +73,8 @@ public class BigBlackAuto extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new FollowPathAction(f, path.path2, true),
-                                new InstantAction(() -> f.setMaxPower(1)),
-                                RobotActions.startTurretTracking()
+                                new InstantAction(() -> f.setMaxPower(1))
+//                                RobotActions.startTurretTracking()
                         ),
                         new ParallelAction(
                                 new FollowPathAction(f, path.path3, true),
