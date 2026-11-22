@@ -13,23 +13,12 @@ public class Shooter {
     private MotorEx nectarShooter;
     private MotorEx pollenShooter;
     // Tune these in FTC Dashboard
-    public static double kP = 0; // tune
-    public static double kI = 0.0;
+    public static double kP = 1.26; // tune
+    public static double kI = .126;;
     public static double kD = 0.0;
-    public static double kF = 0.0;
+    public static double kF = 12.6;
 
-    public static double LAUNCH_ANGLE = 45; // check this
-    public static double LAUNCH_HEIGHT = 0.254;
-    public static double GOAL_HEIGHT = 1.372;
-    public static double WHEEL_RADIUS = 0.048; // check this
-    public static double TRANSFER_RATIO = 0.45; // calculate this when testing dont touch this
-    public static double TICKS_PER_REV = 28;
 
-    // Distance-based shooting is commented out for now; this is the ticks/sec it subtracted.
-    public static double VELO_OFFSET = 1000;
-    // Velocity controller targets in ticks/sec, one per flywheel. Edit in Dashboard or from the TeleOp D-pad.
-    public static double POLLEN_TARGET_TPS = 1800;
-    public static double NECTAR_TARGET_TPS = 1800;
 
     // Raw power mode bookkeeping, so we only write to the hub when something changes.
     private boolean rawPower = false;
@@ -40,7 +29,7 @@ public class Shooter {
         pollenShooter = new MotorEx(hardwareMap, "pollenShooter", Motor.GoBILDA.BARE);
 
         nectarShooter.motor.setDirection(DcMotorSimple.Direction.FORWARD);
-        if (pollenShooter != null) pollenShooter.motor.setDirection(DcMotorSimple.Direction.FORWARD);
+        if (pollenShooter != null) pollenShooter.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         nectarShooter.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
         pollenShooter.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
@@ -96,7 +85,7 @@ public class Shooter {
         if (distance < 2.5) {
             return 1000;
         } else if (distance < 4.5) {
-            return 1800;
+            return 1675;
         } else if (distance < 7.5) {
             return 1900;
         } else if (distance < 12.5) {

@@ -57,7 +57,7 @@ public class BigBlackAuto extends AbstractAuto {
                                 new FollowPathAction(f, path.path1, true)
                         ),
                         new ParallelAction(
-                                RobotActions.shootAction(3.0)
+                                //RobotActions.shootAction(3.0)
                        )
                 )
         );
@@ -74,8 +74,8 @@ public class BigBlackAuto extends AbstractAuto {
                         ),
                         new ParallelAction(
                                 new FollowPathAction(f, path.path3, true),
-                                new InstantAction(() -> f.setMaxPower(0.5)),
-                                RobotActions.intakeAction(1, 4)
+                                new InstantAction(() -> f.setMaxPower(0.5))
+                                //RobotActions.intakeAction(1, 4)
                         ),
                         new ParallelAction(
                                 new FollowPathAction(f, path.path4, true),
@@ -83,8 +83,8 @@ public class BigBlackAuto extends AbstractAuto {
                         ),
                         new ParallelAction(
                                 new FollowPathAction(f, path.path5, true),
-                                new InstantAction(() -> f.setMaxPower(0.7)),
-                                RobotActions.shootAction(5.0)
+                                new InstantAction(() -> f.setMaxPower(0.7))
+                                //RobotActions.shootAction(5.0)
                         )
 //                        new ParallelAction(
 //                                new FollowPathAction(f, path.path6, true),
