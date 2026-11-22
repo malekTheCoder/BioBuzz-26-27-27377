@@ -87,20 +87,6 @@ public class RobotActions {
         return new TrackBallsAction(camera, robot.drivetrain, robot.intake,
                 redAlliance, timeoutSeconds, active);
     }
-    // --- GATE
-
-//    public static Action openGate() {return new InstantAction(() -> robot.gateServo.gateMovement(true));
-//    }
-//    public static Action openGateFor(double seconds) {
-//        return new SequentialAction(
-//                new InstantAction(() -> robot.gateServo.gateMovement(true)),    // open
-//                new SleepAction(seconds),                                       // wait (non-blocking)
-//                new InstantAction(() -> robot.gateServo.gateMovement(false))    // close
-//        );
-//    }
-//    public static Action closeGate() {
-//        return new InstantAction(() -> robot.gateServo.gateMovement(false));
-//    }
     public static Action centerTurret() {
         return new InstantAction(() -> robot.centerTurret());
     }
@@ -116,6 +102,21 @@ public class RobotActions {
     public static Action disableTurret() {
         return new InstantAction(() -> robot.disableTurret());
     }
+    // --- GATE
+
+//    public static Action openGate() {return new InstantAction(() -> robot.gateServo.gateMovement(true));
+//    }
+//    public static Action openGateFor(double seconds) {
+//        return new SequentialAction(
+//                new InstantAction(() -> robot.gateServo.gateMovement(true)),    // open
+//                new SleepAction(seconds),                                       // wait (non-blocking)
+//                new InstantAction(() -> robot.gateServo.gateMovement(false))    // close
+//        );
+//    }
+//    public static Action closeGate() {
+//        return new InstantAction(() -> robot.gateServo.gateMovement(false));
+//    }
+
 //
 //    public static Action setTurretManual(double leftPosition, double rightPosition) {
 //        return new InstantAction(() -> robot.turret.setManual(leftPosition, rightPosition));

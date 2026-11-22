@@ -181,25 +181,16 @@ public class v1tele extends LinearOpMode {
 
             boolean atSpeed = false;
 
+            if (gamepad1.dpadUpWasPressed()) {
+                target += 30;
+            }
+            if (gamepad1.dpadDownWasPressed()) {
+                target -= 30;
+            }
 
-
-            double distance = 3;
-
-//            if (gamepad1.rightBumperWasPressed()) {
-//                distance += 2;
-//            } else if (gamepad1.leftBumperWasPressed()) {
-//                distance -= 2;
-//            }
-
-            // hi
-
-
-
-            // Hold B = velocity control
-            // Hold B = velocity control
             if (gamepad1.left_bumper) {
-                target = Shooter.getIdealVelocity(distance);
-                robot.shooter.setPollenVelocity(target + offset);
+                target = Shooter.getIdealVelocity(3);
+                robot.shooter.setPollenVelocity(target);
 
                 if (Math.abs(target - pollenVelo) < TOLERANCE_TPS) {
                     pollenGate.setPosition(pollenGATE_OPEN);
@@ -215,46 +206,10 @@ public class v1tele extends LinearOpMode {
                 loader.setPower(0);
             }
 
-
-            if (gamepad1.dpadUpWasPressed()){
-                offset += 50;
-            }
-
-            if (gamepad1.dpadDownWasPressed()){
-                offset -= 50;
-            }
-
             if (gamepad1.right_bumper) {
                 intake.setPower(1);
                 loader.setPower(1);
             }
-
-
-
-
-            // ---- Manual gate control ----
-
-            // Hold Y to open both gates.
-            // Release Y to close both gates.
-
-//            if (gamepad1.xWasPressed()) {
-//                if (!gatePosition) {
-//                    gatePosition = true;
-//                } else if (gatePosition) {
-//                    gatePosition = false;
-//
-//            }
-//
-//            if (gatePosition = true) {
-//                pollenGate.setPosition(GATE_OPEN);
-//                nectarGate.setPosition(GATE_OPEN);
-//            } else if (gatePosition = false) {
-//                pollenGate.setPosition(GATE_CLOSED);
-//                nectarGate.setPosition(GATE_CLOSED);
-//                // ---- Mecanum drive ----
-//            }
-
-
 
             double fl = y + x + rx;
             double bl = y - x + rx;
@@ -278,12 +233,12 @@ public class v1tele extends LinearOpMode {
 
             telemetry.addData("rx", rx);
             telemetry.addData("y", y);
-            telemetry.addData(" total target", target + offset);
+            telemetry.addData(" total target", target);
             telemetry.addData("Pollen velocity", pollenShooter.getVelocity());
             telemetry.addData("At speed", atSpeed);
             telemetry.addData("status of gate", gatePosition);
             telemetry.addData("gate position", nectarGate.getPosition());
-            telemetry.addData("distance in inches", distance * .0254);
+            //telemetry.addData("distance in inches", distance * .0254);
             Pose pose = robot.drivetrain.getPose();
             telemetry.addData("Robot X", "%.1f", pose.getX());
             telemetry.addData("Robot Y", "%.1f", pose.getY());

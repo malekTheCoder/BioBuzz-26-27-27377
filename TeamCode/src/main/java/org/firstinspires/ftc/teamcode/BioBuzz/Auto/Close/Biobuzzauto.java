@@ -40,8 +40,8 @@ public class Biobuzzauto extends AbstractAuto {
             path.mirrorAll();
         }
         // in onInit():
-        ll = new LimelightEx(hardwareMap.get(Limelight3A.class, "limelight"));
-
+        Limelight3A cam = hardwareMap.tryGet(Limelight3A.class, "limelight");
+        ll = (cam != null) ? new LimelightEx(cam) : null;
         path.realAuto();   // builds firstShot, gardenCollect, gardenIntake, gardenReturn
     }
 
@@ -56,47 +56,38 @@ public class Biobuzzauto extends AbstractAuto {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         new ParallelAction(
-                                new InstantAction(()-> f.setMaxPower(0.3)),
+                                new InstantAction(()-> f.setMaxPower(0.7)),
                                 RobotActions.startTurretTracking(),
 
                                 new FollowPathAction(f, path.firstShot, true)
                         ),
                         new ParallelAction(
-                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
                                 RobotActions.shootAction(3)
                         )
-                        //RobotActions.openGateFor(1.0)
-                        // change this to however long we want to keep gate open
                 )
         );
         robot.actionScheduler.runBlocking();
     }
-
-
-
     private void cycle4() {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         new ParallelAction(
                                 new FollowPathAction(f, path.gardenCollect, true),
-                                new InstantAction(() -> f.setMaxPower(0.3)),
-                                //RobotActions.disableShooter(),
+                                new InstantAction(() -> f.setMaxPower(0.7)),
                                 RobotActions.startTurretTracking()
                         ),
                         new ParallelAction(
                                 new FollowPathAction(f, path.gardenIntake, false),
-                                new InstantAction(() -> f.setMaxPower(.3)),
+                                new InstantAction(() -> f.setMaxPower(.7)),
                                 RobotActions.intakeAction(1,3),
                                 RobotActions.loaderAction(1, 3)
                         ),
                         new ParallelAction(
                                 new FollowPathAction(f, path.gardenShot, true),
-                                new InstantAction(() -> f.setMaxPower(.3)),
-                                //RobotActions.enableShooter()
+                                new InstantAction(() -> f.setMaxPower(.7)),
                                 RobotActions.startTurretTracking()
                         ),
                         new ParallelAction(
-                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
                                 RobotActions.shootAction(3)
                         )
 
