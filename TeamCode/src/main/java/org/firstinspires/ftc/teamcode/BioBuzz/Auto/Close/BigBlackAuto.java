@@ -54,14 +54,11 @@ public class BigBlackAuto extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new InstantAction(() -> f.setMaxPower(1)),
-                               RobotActions.shootAction(5.0),
-
                                 new FollowPathAction(f, path.path1, true)
-                        )
-//                        new ParallelAction(
-//                                //new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
-//                                //RobotActions.shootAction(3.0)
-//                        )
+                        ),
+                        new ParallelAction(
+                                RobotActions.shootAction(3.0)
+                       )
                 )
         );
         robot.actionScheduler.runBlocking();

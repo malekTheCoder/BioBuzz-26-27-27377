@@ -61,8 +61,8 @@ public class RobotActions {
     public static Action shootAction(double feedSeconds) {
         return new SequentialAction(
                 new InstantAction(() -> {
-                    shotVelocity = Shooter.getIdealVelocity(getDistanceToGoal());
-                    robot.shooter.setPollenVelocity(shotVelocity);
+                    shotVelocity = Shooter.getIdealVelocity(3);
+                    robot.shooter.setPollenVelocity(Shooter.getIdealVelocity(3));
                 }),
                 new Actions.RunnableAction(() ->
                         Math.abs(shotVelocity - robot.shooter.getPollenVelocity()) > 100),
