@@ -61,11 +61,11 @@ public class RobotActions {
     public static Action shootAction(double feedSeconds) {
         return new SequentialAction(
                 new InstantAction(() -> {
-                    shotVelocity = Shooter.getIdealVelocity(getDistanceToGoal());
+                    shotVelocity = Shooter.getIdealVelocity(3);
                     robot.shooter.setPollenVelocity(shotVelocity);
                 }),
                 new Actions.RunnableAction(() ->
-                        Math.abs(shotVelocity - robot.shooter.getPollenVelocity()) > 100),
+                        Math.abs(shotVelocity - robot.shooter.getPollenVelocity()) > 50),
                 // 3. open the gate and feed
                 new InstantAction(() -> {
                     robot.pollenServo.pollenGate(true);

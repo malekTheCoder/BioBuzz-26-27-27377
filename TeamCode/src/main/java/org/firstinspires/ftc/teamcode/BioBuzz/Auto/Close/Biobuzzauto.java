@@ -40,8 +40,11 @@ public class Biobuzzauto extends AbstractAuto {
             path.mirrorAll();
         }
         // in onInit():
-        ll = new LimelightEx(hardwareMap.get(Limelight3A.class, "limelight"));
-
+        try {
+            ll = new LimelightEx(hardwareMap.get(Limelight3A.class, "limelight"));
+        } catch (Exception e) {
+            ll = null;   // no Limelight in the config — skip it
+        }
         path.realAuto();   // builds firstShot, gardenCollect, gardenIntake, gardenReturn
     }
 
@@ -56,14 +59,14 @@ public class Biobuzzauto extends AbstractAuto {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         new ParallelAction(
-                                new InstantAction(()-> f.setMaxPower(0.3)),
+                                new InstantAction(()-> f.setMaxPower(0.7)),
                                 RobotActions.startTurretTracking(),
 
                                 new FollowPathAction(f, path.firstShot, true)
                         ),
                         new ParallelAction(
-                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
-                                RobotActions.shootAction(3)
+                                //new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
+                               // RobotActions.shootAction(2)
                         )
                         //RobotActions.openGateFor(1.0)
                         // change this to however long we want to keep gate open
@@ -79,25 +82,25 @@ public class Biobuzzauto extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new FollowPathAction(f, path.gardenCollect, true),
-                                new InstantAction(() -> f.setMaxPower(0.3)),
+                                new InstantAction(() -> f.setMaxPower(0.7)),
                                 //RobotActions.disableShooter(),
                                 RobotActions.startTurretTracking()
                         ),
                         new ParallelAction(
                                 new FollowPathAction(f, path.gardenIntake, false),
-                                new InstantAction(() -> f.setMaxPower(.3)),
-                                RobotActions.intakeAction(1,3),
-                                RobotActions.loaderAction(1, 3)
+                                new InstantAction(() -> f.setMaxPower(.7))
+//                                RobotActions.intakeAction(1,3),
+//                                RobotActions.loaderAction(1, 3)
                         ),
                         new ParallelAction(
                                 new FollowPathAction(f, path.gardenShot, true),
-                                new InstantAction(() -> f.setMaxPower(.3)),
+                                new InstantAction(() -> f.setMaxPower(.7)),
                                 //RobotActions.enableShooter()
                                 RobotActions.startTurretTracking()
                         ),
                         new ParallelAction(
-                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
-                                RobotActions.shootAction(3)
+                                // new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
+//                                RobotActions.shootAction(3)
                         )
 
                 )
@@ -112,7 +115,7 @@ public class Biobuzzauto extends AbstractAuto {
                                // RobotActions.closeGate(),
                                 //RobotActions.enableShooter(),
                                 RobotActions.startTurretTracking(),
-                                new InstantAction(() -> f.setMaxPower(0.3))   // slower near balls
+                                new InstantAction(() -> f.setMaxPower(0.7))   // slower near balls
                         ),
 
                         // 2) Look for a ball (gives up after 1.5 s)
