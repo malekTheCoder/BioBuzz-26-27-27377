@@ -1,4 +1,3 @@
-
 package org.firstinspires.ftc.teamcode.BioBuzz.TeleOp;
 
 import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
@@ -258,8 +257,6 @@ public class v1tele extends LinearOpMode {
                         "D-pad adjusting",
                         editPollen ? "POLLEN" : "NECTAR"
                 );
-
-
 
                 telemetry.addData(" target", target);
                 telemetry.addData("Nectar velocity", nectarVelo);
