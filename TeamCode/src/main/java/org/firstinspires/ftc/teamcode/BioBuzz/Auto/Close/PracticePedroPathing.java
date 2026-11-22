@@ -149,7 +149,6 @@ public class PracticePedroPathing extends OpMode{
         currentAction = action;
     }
 
-    // runs the current action one step; clears it when it finishes
     public void runAction() {
         if (currentAction != null && !currentAction.run(new TelemetryPacket())) {
             currentAction = null;

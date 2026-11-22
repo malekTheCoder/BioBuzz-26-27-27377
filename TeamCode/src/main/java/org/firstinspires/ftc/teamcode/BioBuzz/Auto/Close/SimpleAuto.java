@@ -13,10 +13,10 @@ import org.firstinspires.ftc.teamcode.BioBuzz.Auto.Close.NewPaths;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.FollowPathAction;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions;
-@Autonomous(name = "Simple Auto", group = "Homework")
+@Autonomous(name = "Simple Auto")
 public class SimpleAuto extends AbstractAuto {
 
-    private NewPaths paths; // poses + paths live in NewPaths.java
+    private NewPaths paths;
 
     private Follower f;
     private NewPaths path;
@@ -43,7 +43,6 @@ public class SimpleAuto extends AbstractAuto {
     protected void onRun() {
         robot.actionScheduler.addAction(
                 new SequentialAction(
-                        // path 1: drive to shoot spot while spinning up shooter + aiming turret
                         new ParallelAction(
                                 new FollowPathAction(robot.drivetrain, paths.path1, true),
                                 RobotActions.shootAction(3.0),
@@ -51,7 +50,6 @@ public class SimpleAuto extends AbstractAuto {
                         ),
                         RobotActions.shootAction(3.0),
                         new FollowPathAction(robot.drivetrain, paths.path2, true),
-                        // path 3: intake on, half speed so it can grab all 4 balls
                         new InstantAction(() -> robot.drivetrain.setMaxPower(0.5)),
                         new ParallelAction(
                                 new FollowPathAction(robot.drivetrain, paths.path3, true),

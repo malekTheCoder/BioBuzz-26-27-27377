@@ -79,7 +79,6 @@ public class BasicTeleop extends OpMode {
         frontRight.setPower(frontRightPower);
         rearRight.setPower(backRightPower);
 
-        // ---------- Right bumper: toggle intake + transfer ----------
         if (gamepad1.right_bumper && !lastRightBumper) {
             intakeOn = !intakeOn;
         }
@@ -93,7 +92,6 @@ public class BasicTeleop extends OpMode {
             transfer.stop();
         }
 
-        // ---------- Y: toggle gate open / closed ----------
         if (gamepad1.y && !lastY) {
             gateOpen = !gateOpen;
             gate.gateMovement(gateOpen);
