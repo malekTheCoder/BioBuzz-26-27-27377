@@ -13,10 +13,10 @@ public class Shooter {
     private MotorEx nectarShooter;
     private MotorEx pollenShooter;
     // Tune these in FTC Dashboard
-    public static double kP = 11.2; // tune
-    public static double kI = 0.0;
+    public static double kP = 1.17; // tune
+    public static double kI = .117;
     public static double kD = 0.0;
-    public static double kF = 11.2;
+    public static double kF = 11.7;
 
 
 
@@ -83,7 +83,7 @@ public class Shooter {
     }
     public static double getIdealVelocity(double distance) {
         if (distance < 2.5) {
-            return 1000;
+            return 1300;
         } else if (distance < 4.5) {
             return 1675;
         } else if (distance < 7.5) {

@@ -18,6 +18,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.BioBuzz.Auto.Close.Paths;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Robot;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Shooter;
@@ -179,8 +180,6 @@ public class v1tele extends LinearOpMode {
             double pollenVelo = pollenShooter.getVelocity();
             double nectarVelo = nectarShooter.getVelocity();
 
-            boolean atSpeed = false;
-
             if (gamepad1.dpadUpWasPressed()) {
                 target += 30;
             }
@@ -211,6 +210,7 @@ public class v1tele extends LinearOpMode {
                 loader.setPower(1);
             }
 
+
             double fl = y + x + rx;
             double bl = y - x + rx;
             double fr = y - x - rx;
@@ -229,7 +229,16 @@ public class v1tele extends LinearOpMode {
             frontRight.setPower(fr / max);
             backRight.setPower(br / max);
 
-            // ---- Telemetry ----
+            boolean atSpeed = false;
+
+            if (Math.abs(target - pollenVelo) < TOLERANCE_TPS) {
+                atSpeed = true;
+            } else {
+                atSpeed = false;
+            }
+
+
+                // ---- Telemetry ----
 
             telemetry.addData("rx", rx);
             telemetry.addData("y", y);
