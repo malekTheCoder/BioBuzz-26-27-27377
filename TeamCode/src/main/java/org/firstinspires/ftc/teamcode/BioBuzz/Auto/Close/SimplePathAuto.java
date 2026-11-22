@@ -2,22 +2,17 @@ package org.firstinspires.ftc.teamcode.BioBuzz.Auto.Close;
 
 import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
 
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.BioBuzz.Auto.AbstractAuto;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.FollowPathAction;
-import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.LimelightEx;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions;
-import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.TrackBallsAction;
 
 @Autonomous(name = "SimplePathAuto")
 public class SimplePathAuto extends AbstractAuto {
@@ -44,8 +39,51 @@ public class SimplePathAuto extends AbstractAuto {
 
     @Override
     protected void onRun() {
-        followPaths();
+        shootPreload();
+        intake();
+        shootsecond();
     }
+    private void shootPreload() {
+        robot.actionScheduler.addAction(
+                new SequentialAction(
+                        new InstantAction(()-> RobotActions.startTurretTracking()),
+                        new FollowPathAction(f,path.simplePath1,true)
+                )
+
+
+        );
+        robot.actionScheduler.runBlocking();
+    }
+
+    private void intake() {
+        robot.actionScheduler.addAction(
+                new SequentialAction(
+                        new InstantAction(()-> f.setMaxPower(0.7)),
+                        new FollowPathAction(f,path.simplePath2,true),
+                        new InstantAction(()-> RobotActions.intakeAction(1,3))
+
+
+                )
+
+        );
+        robot.actionScheduler.runBlocking();
+    }
+    private void shootsecond() {
+        robot.actionScheduler.addAction(
+                new SequentialAction(
+                        new InstantAction(()-> RobotActions.startTurretTracking()),
+                        new InstantAction(()-> f.setMaxPower(1)),
+                        new FollowPathAction(f,path.simplePath3,true)
+
+                )
+
+        );
+        robot.actionScheduler.runBlocking();
+    }
+}
+
+/*
+
 
     private void followPaths() {
         f.setMaxPower(0.7);
@@ -98,3 +136,5 @@ public class SimplePathAuto extends AbstractAuto {
         };
     }
 }
+
+ */

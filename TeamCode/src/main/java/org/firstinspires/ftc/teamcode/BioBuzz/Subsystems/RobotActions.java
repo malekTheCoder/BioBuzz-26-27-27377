@@ -101,12 +101,20 @@ public class RobotActions {
 //    public static Action closeGate() {
 //        return new InstantAction(() -> robot.gateServo.gateMovement(false));
 //    }
+    public static Action centerTurret() {
+        return new InstantAction(() -> robot.centerTurret());
+    }
+
     public static Action startTurretTracking() {
-        return new InstantAction(() -> robot.turret.resumeTracking());
+        return new InstantAction(() -> robot.startTurretTracking());
     }
 
     public static Action stowTurret() {
-        return new InstantAction(() -> robot.turret.stow());
+        return new InstantAction(() -> robot.stowTurret());
+    }
+
+    public static Action disableTurret() {
+        return new InstantAction(() -> robot.disableTurret());
     }
 //
 //    public static Action setTurretManual(double leftPosition, double rightPosition) {
