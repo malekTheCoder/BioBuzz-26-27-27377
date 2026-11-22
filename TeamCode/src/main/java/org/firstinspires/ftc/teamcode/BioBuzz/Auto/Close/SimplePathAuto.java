@@ -40,10 +40,13 @@ public class SimplePathAuto extends AbstractAuto {
     @Override
     protected void onRun() {
         shootPreload();
+        intake();
+        shootsecond();
     }
     private void shootPreload() {
         robot.actionScheduler.addAction(
                 new SequentialAction(
+                        new InstantAction(()-> RobotActions.startTurretTracking()),
                         new FollowPathAction(f,path.simplePath1,true)
                 )
 
@@ -68,6 +71,7 @@ public class SimplePathAuto extends AbstractAuto {
     private void shootsecond() {
         robot.actionScheduler.addAction(
                 new SequentialAction(
+                        new InstantAction(()-> RobotActions.startTurretTracking()),
                         new InstantAction(()-> f.setMaxPower(1)),
                         new FollowPathAction(f,path.simplePath3,true)
 
