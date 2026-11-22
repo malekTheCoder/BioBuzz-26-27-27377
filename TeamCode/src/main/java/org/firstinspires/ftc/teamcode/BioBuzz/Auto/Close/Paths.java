@@ -78,11 +78,13 @@ public class Paths {
     // First Shot
     public static Pose P_START = new Pose(55, 8);
 
-    public static Pose P_SH_1 = new Pose(60, 83);
+    public static Pose P_SH_1 = new Pose(55, 16);
+
+
+    public static Pose P_G_CP1 = new Pose (22,70);
 
     //Garden Intake and Shot
 
-    public static Pose P_G_START = new Pose (6, 10);
 
     public static Pose P_G_COLLECT = new Pose (6, 4);
 
@@ -165,11 +167,11 @@ public class Paths {
         P_SIMPLE_POINT2_CONTROL1 = mirrorDiagonal(P_SIMPLE_POINT2_CONTROL1);
         P_SIMPLE_POINT3_START = mirrorDiagonal(P_SIMPLE_POINT3_START);
         P_SIMPLE_POINT3 = mirrorDiagonal(P_SIMPLE_POINT3);
+        P_G_CP1 = mirrorDiagonal(P_G_CP1);
         P_SIMPLE_POINT3_CONTROL1 = mirrorDiagonal(P_SIMPLE_POINT3_CONTROL1);
 
         P_SH_1 = mirrorDiagonal(P_SH_1);
 
-        P_G_START = mirrorDiagonal(P_G_START);
         P_G_COLLECT = mirrorDiagonal(P_G_COLLECT);
         P_G_SHOOT = mirrorDiagonal(P_G_SHOOT);
 
@@ -257,12 +259,8 @@ public class Paths {
                 .setConstantHeadingInterpolation(H_90)
                 .build();
         gardenCollect = f.pathBuilder()
-                .addPath(new BezierLine(P_SH_1, P_G_START))
+                .addPath(new BezierCurve(P_SH_1, P_G_CP1, P_G_COLLECT))
                 .setLinearHeadingInterpolation(H_90, H_270)
-                .build();
-        gardenIntake = f.pathBuilder()
-                .addPath(new BezierLine(P_G_START, P_G_COLLECT))
-                .setConstantHeadingInterpolation(H_270)
                 .build();
         gardenShot = f.pathBuilder()
                 .addPath(new BezierLine(P_G_COLLECT, P_G_SHOOT))
