@@ -61,7 +61,7 @@ public class RobotActions {
     public static Action shootAction(double feedSeconds) {
         return new SequentialAction(
                 new InstantAction(() -> {
-                    shotVelocity = Shooter.getIdealVelocity(3); // change 3 later
+                    shotVelocity = Shooter.getIdealVelocity(getDistanceToGoal());
                     robot.shooter.setPollenVelocity(shotVelocity);
                 }),
                 new Actions.RunnableAction(() ->
@@ -87,9 +87,24 @@ public class RobotActions {
         return new TrackBallsAction(camera, robot.drivetrain, robot.intake,
                 redAlliance, timeoutSeconds, active);
     }
+    public static Action centerTurret() {
+        return new InstantAction(() -> robot.turret.centerLeftForward());
+    }
+
+    public static Action startTurretTracking() {
+        return new InstantAction(() -> robot.turret.resumeTracking());
+    }
+
+    public static Action stowTurret() {
+        return new InstantAction(() -> robot.turret.stow());
+    }
+
+    public static Action disableTurret() {
+        return new InstantAction(() -> robot.turret.disablePwm());
+    }
     // --- GATE
 
-    //    public static Action openGate() {return new InstantAction(() -> robot.gateServo.gateMovement(true));
+//    public static Action openGate() {return new InstantAction(() -> robot.gateServo.gateMovement(true));
 //    }
 //    public static Action openGateFor(double seconds) {
 //        return new SequentialAction(
@@ -101,13 +116,7 @@ public class RobotActions {
 //    public static Action closeGate() {
 //        return new InstantAction(() -> robot.gateServo.gateMovement(false));
 //    }
-    public static Action startTurretTracking() {
-        return new InstantAction(() -> robot.turret.resumeTracking());
-    }
 
-    public static Action stowTurret() {
-        return new InstantAction(() -> robot.turret.stow());
-    }
 //
 //    public static Action setTurretManual(double leftPosition, double rightPosition) {
 //        return new InstantAction(() -> robot.turret.setManual(leftPosition, rightPosition));

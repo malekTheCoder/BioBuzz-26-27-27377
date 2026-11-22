@@ -54,8 +54,7 @@ public class BigBlackAuto extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new InstantAction(() -> f.setMaxPower(1)),
-                                //new InstantAction(() -> robot.pollenServo.pollenGate(false)),
-                                //RobotActions.shootAction(3.0),
+                               RobotActions.shootAction(5.0),
 
                                 new FollowPathAction(f, path.path1, true)
                         )
@@ -73,8 +72,8 @@ public class BigBlackAuto extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new FollowPathAction(f, path.path2, true),
-                                new InstantAction(() -> f.setMaxPower(1))
-//                                RobotActions.startTurretTracking()
+                                new InstantAction(() -> f.setMaxPower(1)),
+                                RobotActions.startTurretTracking()
                         ),
                         new ParallelAction(
                                 new FollowPathAction(f, path.path3, true),
@@ -88,18 +87,18 @@ public class BigBlackAuto extends AbstractAuto {
                         new ParallelAction(
                                 new FollowPathAction(f, path.path5, true),
                                 new InstantAction(() -> f.setMaxPower(0.7)),
-                                RobotActions.shootAction(3.0)
-                        ),
-                        new ParallelAction(
-                                new FollowPathAction(f, path.path6, true),
-                                new InstantAction(() -> f.setMaxPower(0.7)),
-                                RobotActions.intakeAction(1, 4)
-                        ),
-                        new ParallelAction(
-                                new FollowPathAction(f, path.path7),
-                                new InstantAction(() -> f.setMaxPower(0.6)),
-                                RobotActions.shootAction(3.0)
+                                RobotActions.shootAction(5.0)
                         )
+//                        new ParallelAction(
+//                                new FollowPathAction(f, path.path6, true),
+//                                new InstantAction(() -> f.setMaxPower(0.7))
+////                                RobotActions.intakeAction(1, 4)
+//                        ),
+//                        new ParallelAction(
+//                                new FollowPathAction(f, path.path7),
+//                                new InstantAction(() -> f.setMaxPower(0.6))
+////                                RobotActions.shootAction(3.0)
+//                        )
                 )
         );
         robot.actionScheduler.runBlocking();

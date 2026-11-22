@@ -34,10 +34,10 @@ public class NewPaths {
     public static Pose P_SHOOT = new Pose(57.0, 23);
 
     // Path 2
-    public static Pose P_2 = new Pose(42.0, 10.0);
+    public static Pose P_2 = new Pose(42.0, 11.0);
 
     // Path 3
-    public static Pose P_3 = new Pose(11.0, 10.0); // front stops 3" from the edge (was 0"), still reaches all 4 balls
+    public static Pose P_3 = new Pose(11.0, 11.0); // front stops 3" from the edge (was 0"), still reaches all 4 balls
 
     // Path 4
     public static Pose P_4 = new Pose(39.0, 120.0); // keeps path 4 clear of the side flower and the hives

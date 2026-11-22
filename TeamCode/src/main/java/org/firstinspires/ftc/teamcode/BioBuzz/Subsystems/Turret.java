@@ -6,7 +6,9 @@ import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PwmControl.PwmRange;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.Range;
 
 import java.util.function.Supplier;
@@ -15,32 +17,71 @@ import java.util.function.Supplier;
 public class Turret extends Subsystem<Turret.TurretStates> {
     public enum TurretStates { IDLE, ODOM_TRACKING, MANUAL }
 
-     public static final String LEFT_SERVO_NAME = "leftTurretServo";
-    // Set these to the measured, safe turret travel before enabling tracking.
-    public static double LEFT_MAX_CLOCKWISE_DEGREES = 190;
-    public static double LEFT_MAX_COUNTERCLOCKWISE_DEGREES = 190;
-    // Servo travel in degrees from position 0 to 1; check the actual servo specification.
-    public static double SERVO_TRAVEL_DEGREES = 300;
+    public static final int GEAR_SCALE_REVISION = 5;
+    private static final float EFFECTIVE_TRAVEL_DEGREES = 102.5f;
+    private static final float ENDPOINT_FRACTION = 0.45f;
+    private static final double[] PREVIOUS_TRAVEL_DEGREES = {360, 75, 100, 90, 97.5};
+
+    public static final String LEFT_SERVO_NAME = "leftTurretServo";
+    public static double LEFT_MAX_CLOCKWISE_DEGREES = 20;
+    public static double LEFT_MAX_COUNTERCLOCKWISE_DEGREES = 20;
+    public static double SERVO_TRAVEL_DEGREES = 360;
     public static double SERVO_FORWARD_POSITION = 0.5;
-    public static boolean LEFT_SERVO_REVERSED = true;
+    public static boolean LEFT_SERVO_REVERSED = false;
     public static boolean LEFT_AIM_REVERSED = false;
-    public static double LEFT_OFFSET_X = 0, LEFT_OFFSET_Y = 0;
+    public static double LEFT_AIM_TRIM_DEGREES = 0;
+    public static double LEFT_OFFSET_X = 5, LEFT_OFFSET_Y = -4;
     public static double READY_ANGLE_TOLERANCE_DEGREES = 2;
     public static double SERVO_SETTLE_TIME_SECONDS = 0.35;
     public static double MANUAL_MAX_POWER = 0.25;
     public static double MANUAL_SPEED_DEGREES_PER_SECOND = 60;
-    public static double MAX_COMMAND_SPEED_DEGREES_PER_SECOND = 90;
-    public static final String CALIBRATION_PREFS = "left_positional_turret_v1";
+    public static double MAX_COMMAND_SPEED_DEGREES_PER_SECOND = 240;
+    public static final String CALIBRATION_PREFS = "left_axon_mini_mk2_turret_v2";
+    public static void configureAxonPwm(Servo servo) {
+        if (!(servo instanceof ServoImplEx))
+            throw new IllegalStateException("Configure leftTurretServo as a REV hub servo");
+        ((ServoImplEx) servo).setPwmRange(new PwmRange(500, 2500));
+    }
+    public static boolean hasSavedCalibration(Context context) {
+        return context.getSharedPreferences(CALIBRATION_PREFS, Context.MODE_PRIVATE)
+                .getBoolean("saved", false);
+    }
     public static void loadCalibration(Context context) {
         SharedPreferences p = context.getSharedPreferences(CALIBRATION_PREFS, Context.MODE_PRIVATE);
         if (!p.getBoolean("saved", false)) return;
-        SERVO_TRAVEL_DEGREES = p.getFloat("travel", 180);
+        double savedTravel = p.getFloat("travel", 0);
+        double savedCw = p.getFloat("clockwise", 0);
+        double savedCcw = p.getFloat("counterclockwise", 0);
+        if (p.getInt("gear_scale_revision", 0) < GEAR_SCALE_REVISION
+                && isPreviousScale(savedTravel, savedCw, savedCcw)) {
+            float limit = EFFECTIVE_TRAVEL_DEGREES * ENDPOINT_FRACTION;
+            p.edit().putFloat("travel", EFFECTIVE_TRAVEL_DEGREES)
+                    .putFloat("clockwise", limit)
+                    .putFloat("counterclockwise", limit)
+                    .putBoolean("gear_scale_calibrated", true)
+                    .putInt("gear_scale_revision", GEAR_SCALE_REVISION).apply();
+        }
+        SERVO_TRAVEL_DEGREES = p.getFloat("travel", 360);
         SERVO_FORWARD_POSITION = p.getFloat("center", 0.5f);
-        LEFT_SERVO_REVERSED = p.getBoolean("reversed", true);
+        LEFT_SERVO_REVERSED = p.getBoolean("reversed", false);
         LEFT_MAX_CLOCKWISE_DEGREES = p.getFloat("clockwise", 20);
         LEFT_MAX_COUNTERCLOCKWISE_DEGREES = p.getFloat("counterclockwise", 20);
+        LEFT_AIM_REVERSED = p.getBoolean("aim_reversed", false);
+        LEFT_AIM_TRIM_DEGREES = p.getFloat("aim_trim", 0);
     }
-    // Retained for compilation of disabled legacy encoder experiments.
+
+    private static boolean isPreviousScale(double travel, double clockwise, double counterclockwise) {
+        for (double oldTravel : PREVIOUS_TRAVEL_DEGREES) {
+            double oldLimit = oldTravel * ENDPOINT_FRACTION;
+            if (Math.abs(travel - oldTravel) < 0.01
+                    && Math.abs(clockwise - oldLimit) < 0.01
+                    && Math.abs(counterclockwise - oldLimit) < 0.01) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Deprecated public static final String LEFT_ENCODER_NAME = "leftTurretEncoder";
     @Deprecated public static boolean LEFT_ENCODER_REVERSED = false;
     @Deprecated public static double GEAR_RATIO = 4.782, KP = 0.01, KD = 0.0035;
@@ -74,8 +115,8 @@ public class Turret extends Subsystem<Turret.TurretStates> {
         this.robotPose = robotPose;
         loadCalibration(hardwareMap.appContext);
         leftServo = hardwareMap.get(Servo.class, LEFT_SERVO_NAME);
+        configureAxonPwm(leftServo);
         setAlliance();
-        // A positional servo holds its last command. Do not move it during init.
     }
 
     @Override public void set(TurretStates newState) {
@@ -92,11 +133,26 @@ public class Turret extends Subsystem<Turret.TurretStates> {
         goal = Common.getGoalForAlliance(red, pose.getY() >= Common.FIELD_MIDLINE_Y);
         settledSinceNanos = 0;
     }
-    // Call only after physically aligning the turret forward at the configured center.
     public void zeroLeftForward() {
         stow();
         commandedAngle = 0;
         targetAngle = 0;
+    }
+    public void centerLeftForward() {
+        state = TurretStates.MANUAL;
+        manualSpeed = Double.NaN;
+        commandedAngle = 0;
+        targetAngle = 0;
+        targetReachable = true;
+        settledSinceNanos = 0;
+        lastRunNanos = System.nanoTime();
+        leftServo.setPosition(Range.clip(SERVO_FORWARD_POSITION, 0, 1));
+        ((ServoImplEx) leftServo).setPwmEnable();
+        leftServo.setPosition(Range.clip(SERVO_FORWARD_POSITION, 0, 1));
+    }
+    public void disablePwm() {
+        stow();
+        ((ServoImplEx) leftServo).setPwmDisable();
     }
     public double getDistance() {
         Pose p = robotPose.get();
@@ -107,7 +163,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     @Deprecated public double getLeftEncoderVoltage() { return Double.NaN; }
     @Deprecated public double getRightEncoderVoltage() { return Double.NaN; }
     public double getLeftCommandedAngle() { return commandedAngle; }
-    public double getLeftAngle() { return commandedAngle; } // commanded estimate, not measured feedback
+    public double getLeftAngle() { return commandedAngle; }
     public double getLeftPower() { return leftServo.getPosition(); }
     public double getLeftSpeed() { return 0; }
     public double getLeftTargetSpeed() { return 0; }
@@ -118,7 +174,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
     public String getLeftFaultReason() { return ""; }
     public void setContinuousTracking(boolean enabled) { }
     public void setPositionHoldTolerance(double stop, double restart) { }
-    public void setFullRotation(boolean enabled) { } // positional servos cannot rotate continuously
+    public void setFullRotation(boolean enabled) { }
     public void setPowerRampPerSecond(double rate) { }
     public void setPowerRampPerSecond(double rate, double brakeRate) { }
     public void setTravelLimits(double clockwise, double counterclockwise) {
@@ -165,13 +221,14 @@ public class Turret extends Subsystem<Turret.TurretStates> {
         long now = System.nanoTime();
         double dt = lastRunNanos == 0 ? 0 : Math.min((now - lastRunNanos) / 1e9, 0.1);
         lastRunNanos = now;
-        if (state == TurretStates.IDLE) return; // servo holds its last position
+        if (state == TurretStates.IDLE) return;
         if (state == TurretStates.ODOM_TRACKING) {
             Pose robot = robotPose.get();
             goal = Common.getGoalForAlliance(Common.isRed, robot.getY() >= Common.FIELD_MIDLINE_Y);
             double relative = calculateAngleToGoal(calculateTurretPosition(
                     robot, LEFT_OFFSET_X, LEFT_OFFSET_Y)) - Math.toDegrees(robot.getHeading());
-            targetAngle = normalizeDegrees(LEFT_AIM_REVERSED ? -relative : relative);
+            targetAngle = normalizeDegrees((LEFT_AIM_REVERSED ? -relative : relative)
+                    + LEFT_AIM_TRIM_DEGREES);
         } else if (Double.isFinite(manualSpeed)) {
             targetAngle = commandedAngle + manualSpeed * dt;
         }

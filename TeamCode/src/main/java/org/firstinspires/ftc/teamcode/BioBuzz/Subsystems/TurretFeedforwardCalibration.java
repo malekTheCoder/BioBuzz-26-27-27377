@@ -61,7 +61,7 @@ public final class TurretFeedforwardCalibration {
             samples = 0;
         }
         message = next == Phase.COAST ? "PAUSING" : next == Phase.RAMP ? "RAMPING"
-                : next == Phase.SETTLE ? "SETTLING" : "MEASURING";
+                                                    : next == Phase.SETTLE ? "SETTLING" : "MEASURING";
     }
 
     public double update(double now, double angle) {
