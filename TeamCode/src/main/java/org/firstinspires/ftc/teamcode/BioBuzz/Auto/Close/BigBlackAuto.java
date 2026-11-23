@@ -47,6 +47,10 @@ public class BigBlackAuto extends AbstractAuto {
     protected void onRun() {
         preload();
         restOfIt();
+        secondOne();
+        thirdOne();
+        fourthOne();
+        fifthOne();
     }
 
     private void preload (){
@@ -71,33 +75,83 @@ public class BigBlackAuto extends AbstractAuto {
                                 new FollowPathAction(f, path.path2, true),
                                 new InstantAction(() -> f.setMaxPower(1)),
                                 RobotActions.startTurretTracking()
-                        ),
+                        )
+                )
+        );
+        robot.actionScheduler.runBlocking();
+    }
+        private void secondOne(){
+            robot.actionScheduler.addAction(
+                    new SequentialAction(
+                            new ParallelAction(
+                                    new FollowPathAction(f, path.path2, true),
+                                    new InstantAction(() -> f.setMaxPower(1)),
+                                    RobotActions.startTurretTracking()
+                            )
+                    )
+            );
+            robot.actionScheduler.runBlocking();
+        }
+
+    private void thirdOne(){
+        robot.actionScheduler.addAction(
+                new SequentialAction(
                         new ParallelAction(
                                 new FollowPathAction(f, path.path3, true),
                                 new InstantAction(() -> f.setMaxPower(0.5))
                                 //RobotActions.intakeAction(1, 4)
-                        ),
+                        )
+                )
+        );
+        robot.actionScheduler.runBlocking();
+    }
+
+    private void fourthOne(){
+        robot.actionScheduler.addAction(
+                new SequentialAction(
                         new ParallelAction(
                                 new FollowPathAction(f, path.path4, true),
-                                new InstantAction(() -> f.setMaxPower(0.8))
-                        ),
+                                new InstantAction(() -> f.setMaxPower(0.8)))
+                )
+        );
+        robot.actionScheduler.runBlocking();
+    }
+
+    private void fifthOne(){
+        robot.actionScheduler.addAction(
+                new SequentialAction(
                         new ParallelAction(
                                 new FollowPathAction(f, path.path5, true),
                                 new InstantAction(() -> f.setMaxPower(0.7))
-                                //RobotActions.shootAction(5.0)
+                                //RobotActions.intakeAction(1, 4)
                         )
-//                        new ParallelAction(
-//                                new FollowPathAction(f, path.path6, true),
-//                                new InstantAction(() -> f.setMaxPower(0.7))
-////                                RobotActions.intakeAction(1, 4)
-//                        ),
-//                        new ParallelAction(
-//                                new FollowPathAction(f, path.path7),
-//                                new InstantAction(() -> f.setMaxPower(0.6))
-////                                RobotActions.shootAction(3.0)
-//                        )
                 )
         );
         robot.actionScheduler.runBlocking();
     }
 }
+//    private void sixthOne(){
+//        robot.actionScheduler.addAction(
+//                new SequentialAction(
+//                        new ParallelAction(
+//                                new FollowPathAction(f, path.path6, true),
+//                                new InstantAction(() -> f.setMaxPower(0.7))
+//                                RobotActions.intakeAction(1, 4)
+//                        )
+//
+//                )
+//       );
+//    }
+
+//        private void seventhOne(){
+//            robot.actionScheduler.addAction(
+//                    new SequentialAction(
+//                            new ParallelAction(
+//                                new FollowPathAction(f, path.path7),
+//                                new InstantAction(() -> f.setMaxPower(0.6))
+//                                RobotActions.shootAction(3.0)
+//                            )
+//                    )
+//            );
+//        }
+
