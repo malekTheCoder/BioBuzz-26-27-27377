@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Robot;
@@ -46,6 +47,9 @@ public class v1tele extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+        org.firstinspires.ftc.robotcore.external.Telemetry dashboardTelemetry = dashboard.getTelemetry();
 
         MultipleTelemetry combinedTelemetry = new MultipleTelemetry(
                 telemetry,
@@ -143,6 +147,9 @@ public class v1tele extends LinearOpMode {
         boolean lastRed = false;
         boolean lastBlue = false;
 
+        ElapsedTime readyTimer = new ElapsedTime();
+        boolean wasAtSpeed = false;
+
         waitForStart();
 
         if (isStopRequested()) return;
@@ -193,19 +200,31 @@ public class v1tele extends LinearOpMode {
                 robot.shooter.setPollenVelocity(target);
 
                 if (Math.abs(target - pollenVelo) < TOLERANCE_TPS) {
-                    pollenGate.setPosition(pollenGATE_OPEN);
-                    nectarGate.setPosition(nectarGATE_OPEN);
-                    intake.setPower(1);
-                    loader.setPower(.7);
+
+                    if (!atSpeed) {
+                        atSpeed = true;
+                        readyTimer.reset();
+                    }
+
+                    if (readyTimer.seconds() >= 1.0) {
+                        pollenGate.setPosition(pollenGATE_OPEN);
+                        nectarGate.setPosition(nectarGATE_OPEN);
+                        intake.setPower(1);
+                        loader.setPower(.65);
+                    }
+                } else {
+                    atSpeed = false;
                 }
+
             } else {
+                atSpeed = false;
+
                 robot.shooter.setPollenVelocity(0);
                 pollenGate.setPosition(pollenGATE_CLOSED);
                 nectarGate.setPosition(nectarGATE_CLOSED);
                 intake.setPower(0);
                 loader.setPower(0);
             }
-
             if (gamepad1.right_bumper) {
                 intake.setPower(1);
                 loader.setPower(1);
@@ -231,22 +250,22 @@ public class v1tele extends LinearOpMode {
 
             // ---- Telemetry ----
 
-            telemetry.addData("rx", rx);
-            telemetry.addData("y", y);
-            telemetry.addData(" total target", target);
-            telemetry.addData("Pollen velocity", pollenShooter.getVelocity());
-            telemetry.addData("At speed", atSpeed);
-            telemetry.addData("status of gate", gatePosition);
-            telemetry.addData("gate position", nectarGate.getPosition());
+            dashboardTelemetry.addData("rx", rx);
+            dashboardTelemetry.addData("y", y);
+            dashboardTelemetry.addData(" total target", target);
+            dashboardTelemetry.addData("Pollen velocity", pollenShooter.getVelocity());
+            dashboardTelemetry.addData("At speed", atSpeed);
+            dashboardTelemetry.addData("status of gate", gatePosition);
+            dashboardTelemetry.addData("gate position", nectarGate.getPosition());
             //telemetry.addData("distance in inches", distance * .0254);
             Pose pose = robot.drivetrain.getPose();
-            telemetry.addData("Robot X", "%.1f", pose.getX());
-            telemetry.addData("Robot Y", "%.1f", pose.getY());
-            telemetry.addData("Heading (deg)", "%.1f", Math.toDegrees(pose.getHeading()));
-            telemetry.addLine("A=track X=center B=hold Left=red Right=blue");
+            dashboardTelemetry.addData("Robot X", "%.1f", pose.getX());
+            dashboardTelemetry.addData("Robot Y", "%.1f", pose.getY());
+            dashboardTelemetry.addData("Heading (deg)", "%.1f", Math.toDegrees(pose.getHeading()));
+            dashboardTelemetry.addLine("A=track X=center B=hold Left=red Right=blue");
             robot.printTelemetry();
 
-            telemetry.update();
+            dashboardTelemetry.update();
         }
     }
 
