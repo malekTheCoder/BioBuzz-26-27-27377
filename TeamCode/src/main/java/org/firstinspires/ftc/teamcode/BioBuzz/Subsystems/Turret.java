@@ -17,15 +17,16 @@ import java.util.function.Supplier;
 public class Turret extends Subsystem<Turret.TurretStates> {
     public enum TurretStates { IDLE, ODOM_TRACKING, MANUAL }
 
-    public static final int GEAR_SCALE_REVISION = 5;
-    private static final float EFFECTIVE_TRAVEL_DEGREES = 102.5f;
+    public static final int GEAR_SCALE_REVISION = 6;
+    // 36-tooth servo gear driving an 83-tooth turret gear, with 360 degrees of servo travel.
+    private static final float EFFECTIVE_TRAVEL_DEGREES = 360f * 36f / 83f;
     private static final float ENDPOINT_FRACTION = 0.45f;
-    private static final double[] PREVIOUS_TRAVEL_DEGREES = {360, 75, 100, 90, 97.5};
+    private static final double[] PREVIOUS_TRAVEL_DEGREES = {360, 75, 100, 90, 97.5, 102.5};
 
     public static final String LEFT_SERVO_NAME = "leftTurretServo";
     public static double LEFT_MAX_CLOCKWISE_DEGREES = 20;
     public static double LEFT_MAX_COUNTERCLOCKWISE_DEGREES = 20;
-    public static double SERVO_TRAVEL_DEGREES = 360;
+    public static double SERVO_TRAVEL_DEGREES = EFFECTIVE_TRAVEL_DEGREES;
     public static double SERVO_FORWARD_POSITION = 0.5;
     public static boolean LEFT_SERVO_REVERSED = false;
     public static boolean LEFT_AIM_REVERSED = false;
@@ -61,7 +62,7 @@ public class Turret extends Subsystem<Turret.TurretStates> {
                     .putBoolean("gear_scale_calibrated", true)
                     .putInt("gear_scale_revision", GEAR_SCALE_REVISION).apply();
         }
-        SERVO_TRAVEL_DEGREES = p.getFloat("travel", 360);
+        SERVO_TRAVEL_DEGREES = p.getFloat("travel", EFFECTIVE_TRAVEL_DEGREES);
         SERVO_FORWARD_POSITION = p.getFloat("center", 0.5f);
         LEFT_SERVO_REVERSED = p.getBoolean("reversed", false);
         LEFT_MAX_CLOCKWISE_DEGREES = p.getFloat("clockwise", 20);

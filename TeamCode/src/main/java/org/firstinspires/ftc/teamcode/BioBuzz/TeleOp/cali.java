@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Turret;
 @TeleOp(name = "Axon MINI MK2 Calibrate", group = "Test")
 public class cali extends LinearOpMode {
     @Override public void runOpMode() {
+        Turret.loadCalibration(hardwareMap.appContext);
         SharedPreferences prefs = hardwareMap.appContext.getSharedPreferences(
                 Turret.CALIBRATION_PREFS, Context.MODE_PRIVATE);
         Servo servo = hardwareMap.get(Servo.class, Turret.LEFT_SERVO_NAME);
@@ -88,6 +89,7 @@ public class cali extends LinearOpMode {
                                 .putBoolean("reversed", reversed)
                                 .putFloat("clockwise", (float) (Math.abs(clockwise - center) * travel))
                                 .putFloat("counterclockwise", (float) (Math.abs(counterclockwise - center) * travel))
+                                .putInt("gear_scale_revision", Turret.GEAR_SCALE_REVISION)
                                 .apply();
                         status = "SAVED. Restart the bench test to load settings.";
                     } else status = "Cannot save: ends must be on opposite sides of forward.";
