@@ -65,7 +65,7 @@ public class Paths {
     public static Pose P_SIMPLE_START = new Pose(54.9, 8.7103);
     public static Pose P_SIMPLE_PATH1 = new Pose(54.9, 13.5);
     public static Pose P_SIMPLE_POINT2_START = new Pose(54.9, 13.5);
-    public static Pose P_SIMPLE_POINT2 = new Pose(9.5, 20.0257);
+    public static Pose P_SIMPLE_POINT2 = new Pose(9.5, 18.5);
     public static Pose P_SIMPLE_POINT2_CONTROL1 = new Pose(9.5, 75.4478);
     public static Pose P_SIMPLE_POINT3_START = new Pose(6.4238, 8.0257);
     public static Pose P_SIMPLE_POINT3 = new Pose(57.2496, 125.3026);

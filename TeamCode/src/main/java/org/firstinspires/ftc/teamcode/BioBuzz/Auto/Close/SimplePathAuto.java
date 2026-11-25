@@ -60,7 +60,7 @@ public class SimplePathAuto extends AbstractAuto {
                                 RobotActions.waitForTurret(),
                                 RobotActions.waitForShooter(SHOT_VELOCITY)
                         ),
-                        RobotActions.shootAction(SHOT_VELOCITY,1),
+                        RobotActions.shootAction(SHOT_VELOCITY,3),
                         RobotActions.stopShooter()
                 )
 
@@ -74,10 +74,11 @@ public class SimplePathAuto extends AbstractAuto {
                 new SequentialAction(
                     new ParallelAction(
                             new InstantAction(()-> f.setMaxPower(0.7)),
-                            new Actions.CallbackAction(RobotActions.intakeAction(1,1,4), path.simplePath2,01, 0, f, "intake" ),
-                            new FollowPathAction(f,path.simplePath2,true)
-
-)
+                            new Actions.CallbackAction(
+                                        RobotActions.intakeAction(1,1,7), path.simplePath2, 0.01, 0, f, "intake"
+                               ),
+                               new FollowPathAction(f, path.simplePath2)),
+                        new InstantAction(()-> RobotActions.intakeAction(1,7))
                 )
 
         );
@@ -88,13 +89,15 @@ public class SimplePathAuto extends AbstractAuto {
                 new SequentialAction(
                         RobotActions.startTurretTracking(),
                         RobotActions.startShooter(SHOT_VELOCITY),
-                        new InstantAction(()-> f.setMaxPower(1)),
-                        new FollowPathAction(f,path.simplePath3,true),
+                                new InstantAction(()-> f.setMaxPower(1)),
+                                new Actions.CallbackAction(
+                                        RobotActions.intakeAction(0.3,0.3,5), path.simplePath2, 0.01, 0, f, "intake"),
+                                new FollowPathAction(f, path.simplePath2),
                         new ParallelAction(
                                 RobotActions.waitForTurret(),
                                 RobotActions.waitForShooter(SHOT_VELOCITY)
                         ),
-                        RobotActions.shootAction(SHOT_VELOCITY,3),
+                        RobotActions.shootAction(SHOT_VELOCITY,2),
                         RobotActions.stopShooter()
 
                 )
