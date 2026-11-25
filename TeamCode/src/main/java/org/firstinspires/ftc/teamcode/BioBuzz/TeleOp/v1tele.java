@@ -201,23 +201,24 @@ public class v1tele extends LinearOpMode {
 
                 if (Math.abs(target - pollenVelo) < TOLERANCE_TPS) {
 
-                    if (!atSpeed) {
-                        atSpeed = true;
+                    if (!wasAtSpeed) {
+                        wasAtSpeed = true;
                         readyTimer.reset();
                     }
+                    atSpeed = true;
 
-                    if (readyTimer.seconds() >= 1.0) {
+                    if (readyTimer.seconds() >= .4) {
                         pollenGate.setPosition(pollenGATE_OPEN);
                         nectarGate.setPosition(nectarGATE_OPEN);
                         intake.setPower(1);
                         loader.setPower(.65);
                     }
                 } else {
-                    atSpeed = false;
+                    wasAtSpeed = false;
                 }
 
             } else {
-                atSpeed = false;
+                wasAtSpeed = false;
 
                 robot.shooter.setPollenVelocity(0);
                 pollenGate.setPosition(pollenGATE_CLOSED);
