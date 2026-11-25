@@ -50,7 +50,6 @@ public class Abdelrahmansauto extends AbstractAuto {
 
     }
 
-    private static double shotVelocity = 0;
 
     private void preload() {
         robot.actionScheduler.addAction(
@@ -66,16 +65,16 @@ public class Abdelrahmansauto extends AbstractAuto {
                             robot.shooter.setPollenVelocity(1660);
                         }),
                         new Actions.RunnableAction(() ->
-                                Math.abs(shotVelocity - robot.shooter.getPollenVelocity()) > 100),
+                                Math.abs(1600 - robot.shooter.getPollenVelocity()) > 100),
                         new InstantAction(() -> {
-                            robot.pollenServo.pollenGate(true);
+                            robot.pollenServo.pollenGate(false);
                             robot.intake.intakeElements(1);
                             robot.transfer.loadElements(1);
                         }),
                         new SleepAction(3),
                         // 4. shut everything off
                         new InstantAction(() -> {
-                            robot.pollenServo.pollenGate(false);
+                            robot.pollenServo.pollenGate(true);
                             robot.intake.stop();
                             robot.transfer.stop();
                             robot.shooter.setPollenVelocity(0);
