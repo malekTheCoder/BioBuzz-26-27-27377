@@ -5,8 +5,13 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class Gate {
 
-    private Servo pollenServo;
-    private Servo nectarServo;
+    public static double POLLEN_OPEN = 0.0;
+    public static double POLLEN_CLOSED = 0.15;
+    public static double NECTAR_OPEN = 0.4;
+    public static double NECTAR_CLOSED = 0.2;
+
+    private final Servo pollenServo;
+    private final Servo nectarServo;
 
     public Gate(HardwareMap hardwareMap) {
         pollenServo = hardwareMap.get(Servo.class, "pollen_gate");
@@ -14,28 +19,19 @@ public class Gate {
 
         nectarServo = hardwareMap.get(Servo.class, "nectar_gate");
         nectarServo.setDirection(Servo.Direction.FORWARD);
+        gateMovement(false);
     }
 
     public void pollenGate(boolean open) {
-        if (open == true) {
-            pollenServo.setPosition(0.3); // choose this
-        } else {
-            pollenServo.setPosition(0); // choose this
-        }
+        pollenServo.setPosition(open ? POLLEN_OPEN : POLLEN_CLOSED);
     }
 
     public void nectarGate(boolean open) {
-        if (open == true) {
-            nectarServo.setPosition(0.3); // choose this
-        } else {
-            nectarServo.setPosition(0); // choose this
-        }
+        nectarServo.setPosition(open ? NECTAR_OPEN : NECTAR_CLOSED);
     }
 
     public void gateMovement(boolean open) {
         pollenGate(open);
         nectarGate(open);
     }
-    // CHANGE: same name as before, so auto doesn't change. Now moves BOTH gates. This also
-    // fixes the missing "}" that was hidden inside a comment.
 }

@@ -12,13 +12,22 @@ import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
 
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Robot;
-import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions;
 
 
 public abstract class AbstractAuto extends LinearOpMode {
+    private long lastTurretTelemetryNanos;
+
     protected final void update() {
         robot.run();
-        //robot.printTelemetry();
+        long now = System.nanoTime();
+        if (now - lastTurretTelemetryNanos >= 100_000_000L) {
+            robot.printTelemetry();
+            Pose pose = robot.drivetrain.getPose();
+            dashTelemetry.addData("Auto pose", "%.1f, %.1f, %.1f deg",
+                    pose.getX(), pose.getY(), Math.toDegrees(pose.getHeading()));
+            dashTelemetry.update();
+            lastTurretTelemetryNanos = now;
+        }
     }
 
     @Override
@@ -29,20 +38,23 @@ public abstract class AbstractAuto extends LinearOpMode {
 
         configure();
 
-        // set the goal after we pick red or blue
         robot.turret.setAlliance();
-        RobotActions.setGoal(Common.getAllianceGoal());
 
         onInit();
 
         if (isStopRequested()) return;
 
         waitForStart();
+        if (isStopRequested()) return;
 
         resetRuntime();
         robot.drivetrain.setPose(getStartPose());
 
         onRun();
+        while (opModeIsActive()) {
+            update();
+            idle();
+        }
         Common.AUTO_END_POSE = robot.drivetrain.getPose();
     }
 

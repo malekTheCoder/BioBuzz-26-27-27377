@@ -10,6 +10,7 @@ public final class Robot {
     public final Follower drivetrain;
     public final Shooter shooter;
 
+    public final Gate gate;
     public final Gate pollenServo;
     public final Gate nectarServo;
 
@@ -32,8 +33,9 @@ public final class Robot {
 
         intake = new Intake(hardwareMap); // 2 intake wheel
 
-        pollenServo = new Gate(hardwareMap);
-        nectarServo = new Gate(hardwareMap);
+        gate = new Gate(hardwareMap);
+        pollenServo = gate;
+        nectarServo = gate;
 
         shooter = new Shooter(hardwareMap); // shooter wheel (2 motors)
         turret = new Turret(hardwareMap, drivetrain);
@@ -62,6 +64,7 @@ public final class Robot {
         bulkReader.bulkRead();
         drivetrain.update();
         turret.run();
+        shooter.updatePIDF();
         actionScheduler.run();
         //shooter.update(); // enabled distance tracking must run every loop
     }

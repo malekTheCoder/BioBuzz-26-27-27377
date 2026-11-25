@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.BioBuzz.Auto.Close;
 import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
 
 import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.pedropathing.follower.Follower;
@@ -10,12 +11,15 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.BioBuzz.Auto.AbstractAuto;
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Actions;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.FollowPathAction;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions;
+import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Shooter;
 
 @Autonomous(name = "SimplePathAuto")
 public class SimplePathAuto extends AbstractAuto {
+    private static final double SHOT_VELOCITY = Shooter.getIdealVelocity(3);
     private Follower f;
     private Paths path;
 
@@ -42,12 +46,20 @@ public class SimplePathAuto extends AbstractAuto {
         shootPreload();
         intake();
         shootsecond();
+
     }
     private void shootPreload() {
         robot.actionScheduler.addAction(
                 new SequentialAction(
-                        new InstantAction(()-> RobotActions.startTurretTracking()),
-                        new FollowPathAction(f,path.simplePath1,true)
+                        RobotActions.startTurretTracking(),
+                        RobotActions.startShooter(SHOT_VELOCITY),
+                        //new FollowPathAction(f,path.simplePath1,true),
+                        new ParallelAction(
+                                RobotActions.waitForTurret(),
+                                RobotActions.waitForShooter(SHOT_VELOCITY)
+                        ),
+                        RobotActions.shootAction(SHOT_VELOCITY,1),
+                        RobotActions.stopShooter()
                 )
 
 
@@ -58,11 +70,12 @@ public class SimplePathAuto extends AbstractAuto {
     private void intake() {
         robot.actionScheduler.addAction(
                 new SequentialAction(
-                        new InstantAction(()-> f.setMaxPower(0.7)),
-                        new FollowPathAction(f,path.simplePath2,true),
-                        new InstantAction(()-> RobotActions.intakeAction(1,3))
+                    new ParallelAction(
+                            new InstantAction(()-> f.setMaxPower(0.7)),
+                            new Actions.CallbackAction(RobotActions.intakeAction(1,1,4), path.simplePath2,01, 0, f, "intake" ),
+                            new FollowPathAction(f,path.simplePath2,true)
 
-
+)
                 )
 
         );
@@ -71,9 +84,16 @@ public class SimplePathAuto extends AbstractAuto {
     private void shootsecond() {
         robot.actionScheduler.addAction(
                 new SequentialAction(
-                        new InstantAction(()-> RobotActions.startTurretTracking()),
+                        RobotActions.startTurretTracking(),
+                        RobotActions.startShooter(SHOT_VELOCITY),
                         new InstantAction(()-> f.setMaxPower(1)),
-                        new FollowPathAction(f,path.simplePath3,true)
+                        //new FollowPathAction(f,path.simplePath3,true),
+                        new ParallelAction(
+                                RobotActions.waitForTurret(),
+                                RobotActions.waitForShooter(SHOT_VELOCITY)
+                        ),
+                        RobotActions.shootAction(SHOT_VELOCITY,3),
+                        RobotActions.stopShooter()
 
                 )
 

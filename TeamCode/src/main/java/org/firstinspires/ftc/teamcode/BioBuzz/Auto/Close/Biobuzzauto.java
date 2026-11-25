@@ -61,10 +61,9 @@ public class Biobuzzauto extends AbstractAuto {
 
                                 new FollowPathAction(f, path.firstShot, true)
                         ),
-                        new ParallelAction(
-                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
-                                RobotActions.shootAction(3)
-                        )
+                        RobotActions.waitForTurret(),
+                        new Actions.SingleCheckAction(
+                                () -> robot.turret.isReadyToShoot(), RobotActions.shootAction(3))
                         //RobotActions.openGateFor(1.0)
                         // change this to however long we want to keep gate open
                 )
@@ -86,8 +85,7 @@ public class Biobuzzauto extends AbstractAuto {
                         new ParallelAction(
                                 new FollowPathAction(f, path.gardenIntake, false),
                                 new InstantAction(() -> f.setMaxPower(.3)),
-                                RobotActions.intakeAction(1,3),
-                                RobotActions.loaderAction(1, 3)
+                                RobotActions.intakeAction(1,1,3)
                         ),
                         new ParallelAction(
                                 new FollowPathAction(f, path.gardenShot, true),
@@ -95,10 +93,9 @@ public class Biobuzzauto extends AbstractAuto {
                                 //RobotActions.enableShooter()
                                 RobotActions.startTurretTracking()
                         ),
-                        new ParallelAction(
-                                new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot()),
-                                RobotActions.shootAction(3)
-                        )
+                        RobotActions.waitForTurret(),
+                        new Actions.SingleCheckAction(
+                                () -> robot.turret.isReadyToShoot(), RobotActions.shootAction(3))
 
                 )
         );
@@ -119,11 +116,11 @@ public class Biobuzzauto extends AbstractAuto {
                         RobotActions.scanForBall(ll, LimelightEx.PIPELINE_POLLEN, 1.5),
 
                         // 3) Turn the intake on and drive to the ball
-                        new InstantAction(() -> robot.intake.intakeElements(1.0)),
+                        RobotActions.startIntake(1.0),
                         RobotActions.driveToBall(ll, LimelightEx.PIPELINE_POLLEN),
 
                         // 4) Keep intaking 0.5 s more after arriving, then stop it
-                        RobotActions.intakeAction(1.0, 0.5),
+                        RobotActions.intakeAction(1.0, 1.0, 0.5),
 
                         // 5) Camera back to AprilTags (for relocalizing later)
                         new InstantAction(() -> ll.setPipeline(LimelightEx.PIPELINE_APRILTAG)),
