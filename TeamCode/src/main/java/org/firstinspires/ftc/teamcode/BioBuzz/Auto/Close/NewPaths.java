@@ -31,7 +31,7 @@ public class NewPaths {
     // Path 3
     public static Pose P_INTAKE = new Pose(11.0, 11.0); // front stops 3" from the edge (was 0"), still reaches all 4 balls
 
-    public static Pose CP_SHOOT2 = new Pose (18, 78);
+    public static Pose CP_SHOOT2 = new Pose (16, 78);
 
     // Path 4
     public static Pose P_SHOOT2 = new Pose(55, 138); // keeps path 4 clear of the side flower and the hives
@@ -40,6 +40,7 @@ public class NewPaths {
 
     public static double H_180 = Math.toRadians(180);
     public static double H_270 = Math.toRadians(270);
+    public static double H_285 = Math.toRadians(285);
 
     public NewPaths(Follower follower) {
         f = follower;
@@ -75,6 +76,7 @@ public class NewPaths {
         H_90 = rotateAngleRad(H_90);
         H_180 = rotateAngleRad(H_180);
         H_270 = rotateAngleRad(H_270);
+        H_285 =rotateAngleRad(H_285);
     }
 
     // start pose + heading for follower.setPose()
@@ -98,13 +100,13 @@ public class NewPaths {
         // ---------- Path 2 ----------
         intake = f.pathBuilder()
                 .addPath(new BezierCurve(P_SHOOT, CP_INTAKE, P_INTAKE))
-                .setLinearHeadingInterpolation(H_90, H_180)
+                .setLinearHeadingInterpolation(H_90, H_270)
                 .build();
 
         // ---------- Path 3 ----------
         shoot2 = f.pathBuilder()
                 .addPath(new BezierCurve(P_INTAKE, CP_SHOOT2, P_SHOOT2))
-                .setLinearHeadingInterpolation(H_180, H_270)
+                .setLinearHeadingInterpolation(H_270, H_285)
                 .build();
     }
 }

@@ -125,9 +125,35 @@ public class RobotActions {
         });
     }
 
+    private static double shotVelocity = 0;
+
     public static Action shootAction(double feedSeconds) {
-        return shootAction(Shooter.getIdealVelocity(3), feedSeconds);
+        return new SequentialAction(
+                new InstantAction(() -> {
+                    shotVelocity = Shooter.getIdealVelocity(3);
+                    robot.shooter.setPollenVelocity(shotVelocity);
+                }),
+                new Actions.RunnableAction(() ->
+                        Math.abs(shotVelocity - robot.shooter.getPollenVelocity()) > 100),
+                new InstantAction(() -> {
+                    robot.pollenServo.pollenGate(true);
+                    robot.intake.intakeElements(1);
+                    robot.transfer.loadElements(1);
+                }),
+                new SleepAction(feedSeconds),
+                // 4. shut everything off
+                new InstantAction(() -> {
+                    robot.pollenServo.pollenGate(false);
+                    robot.intake.stop();
+                    robot.shooter.setPollenVelocity(0);
+                })
+        );
     }
+
+//    public static Action shootAction(double feedSeconds) {
+//        return shootAction(Shooter.getIdealVelocity(3), feedSeconds);
+//    }
+
 
     public static Action shootAction(double targetVelocity, double feedSeconds) {
         return new Action() {

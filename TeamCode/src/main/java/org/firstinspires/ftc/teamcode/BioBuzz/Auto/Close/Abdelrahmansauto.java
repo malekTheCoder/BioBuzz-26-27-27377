@@ -14,10 +14,11 @@ import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.FollowPathAction;
 import org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.RobotActions;
 
-@Autonomous (name = "BigBlackAuto")
+@Autonomous (name = "AbdelAuto")
 public class Abdelrahmansauto extends AbstractAuto {
     private Follower f;
     private NewPaths path;
+
     @Override
     protected Pose getStartPose() {
         return NewPaths.getStartPose();
@@ -40,22 +41,20 @@ public class Abdelrahmansauto extends AbstractAuto {
     @Override
     protected void onRun() {
         preload();
-        restOfIt();
-        secondOne();
-        thirdOne();
-        fourthOne();
-        fifthOne();
+        intake();
+        shoot2();
+
     }
 
-    private void preload (){
+    private void preload() {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         RobotActions.startTurretTracking(),
                         new ParallelAction(
                                 new InstantAction(() -> f.setMaxPower(.5)),
-                                new FollowPathAction(f, path., true)
+                                new FollowPathAction(f, path.preload, true)
 
-                ),
+                        ),
                         new InstantAction(() -> RobotActions.shootAction(3.0))
                 )
         );
@@ -64,68 +63,33 @@ public class Abdelrahmansauto extends AbstractAuto {
         robot.actionScheduler.runBlocking();
     }
 
-    private void restOfIt (){
+    private void intake() {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         new ParallelAction(
-                                new FollowPathAction(f, path.path2, true),
+                                new FollowPathAction(f, path.intake, true),
                                 new InstantAction(() -> f.setMaxPower(.7))
-                        )
-                )
-        );
-        robot.actionScheduler.runBlocking();
-    }
-        private void secondOne(){
-            robot.actionScheduler.addAction(
-                    new SequentialAction(
-                            new ParallelAction(
-                                    new FollowPathAction(f, path.path2, true),
-                                    new InstantAction(() -> f.setMaxPower(.8)),
-                                    RobotActions.startTurretTracking()
-                            )
-//                            new InstantAction(() -> RobotActions.startTurretTracking()),
-//                            new InstantAction(() -> RobotActions.shootAction(3.0))
-                    )
-            );
-            robot.actionScheduler.runBlocking();
-        }
-
-    private void thirdOne(){
-        robot.actionScheduler.addAction(
-                new SequentialAction(
-                        new ParallelAction(
-                                new FollowPathAction(f, path.path3, true),
-                                new InstantAction(() -> f.setMaxPower(0.5))
-//                                RobotActions.intakeAction(1, 4)
-                        )
+                        ),
+                        RobotActions.intakeAction(1, 4)
                 )
         );
         robot.actionScheduler.runBlocking();
     }
 
-    private void fourthOne(){
+    private void shoot2() {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         new ParallelAction(
-                                new FollowPathAction(f, path.path4, true),
-                                new InstantAction(() -> f.setMaxPower(0.8)))
+                                new FollowPathAction(f, path.shoot2, true),
+                                new InstantAction(() -> f.setMaxPower(.8)),
+                                RobotActions.startTurretTracking()
+                        ),
+                        RobotActions.shootAction(3.0)
                 )
         );
         robot.actionScheduler.runBlocking();
     }
 
-    private void fifthOne(){
-        robot.actionScheduler.addAction(
-                new SequentialAction(
-                        new ParallelAction(
-                                new FollowPathAction(f, path.path5, true),
-                                new InstantAction(() -> f.setMaxPower(0.7))
-//                                RobotActions.intakeAction(1, 4)
-                        )
-                )
-        );
-        robot.actionScheduler.runBlocking();
-    }
 }
 //    private void sixthOne(){
 //        robot.actionScheduler.addAction(
