@@ -61,12 +61,10 @@ public class RobotActions {
     public static Action shootAction(double feedSeconds) {
         return new SequentialAction(
                 new InstantAction(() -> {
-                    shotVelocity = Shooter.getIdealVelocity(getDistanceToGoal());
-                    robot.shooter.setPollenVelocity(shotVelocity);
+                    robot.shooter.setPollenVelocity(1660);
                 }),
                 new Actions.RunnableAction(() ->
-                        Math.abs(shotVelocity - robot.shooter.getPollenVelocity()) > 100),
-                // 3. open the gate and feed
+                        Math.abs(1600 - robot.shooter.getPollenVelocity()) > 100),
                 new InstantAction(() -> {
                     robot.pollenServo.pollenGate(true);
                     robot.intake.intakeElements(1);
@@ -77,10 +75,13 @@ public class RobotActions {
                 new InstantAction(() -> {
                     robot.pollenServo.pollenGate(false);
                     robot.intake.stop();
+                    robot.transfer.stop();
                     robot.shooter.setPollenVelocity(0);
                 })
         );
     }
+
+
 
     public static TrackBallsAction trackBalls(LimelightEx camera, boolean redAlliance,
                                                double timeoutSeconds, BooleanSupplier active) {

@@ -83,7 +83,7 @@ public class Shooter {
     }
     public static double getIdealVelocity(double distance) {
         if (distance < 2.5) {
-            return 1000;
+            return 1300;
         } else if (distance < 4.5) {
             return 1660;
         } else if (distance < 7.5) {
