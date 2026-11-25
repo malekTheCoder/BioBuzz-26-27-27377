@@ -52,8 +52,10 @@ public class SimplePathAuto extends AbstractAuto {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         RobotActions.startTurretTracking(),
-                        RobotActions.startShooter(SHOT_VELOCITY),
-                        //new FollowPathAction(f,path.simplePath1,true),
+                        new ParallelAction(
+                                RobotActions.startShooter(SHOT_VELOCITY),
+                                new FollowPathAction(f,path.simplePath1,true)
+                        ),
                         new ParallelAction(
                                 RobotActions.waitForTurret(),
                                 RobotActions.waitForShooter(SHOT_VELOCITY)
@@ -87,7 +89,7 @@ public class SimplePathAuto extends AbstractAuto {
                         RobotActions.startTurretTracking(),
                         RobotActions.startShooter(SHOT_VELOCITY),
                         new InstantAction(()-> f.setMaxPower(1)),
-                        //new FollowPathAction(f,path.simplePath3,true),
+                        new FollowPathAction(f,path.simplePath3,true),
                         new ParallelAction(
                                 RobotActions.waitForTurret(),
                                 RobotActions.waitForShooter(SHOT_VELOCITY)
