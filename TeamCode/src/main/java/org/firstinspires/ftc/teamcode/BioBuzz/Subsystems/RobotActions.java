@@ -2,188 +2,259 @@ package org.firstinspires.ftc.teamcode.BioBuzz.Subsystems;
 
 import static org.firstinspires.ftc.teamcode.BioBuzz.Subsystems.Common.robot;
 
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
-import com.pedropathing.geometry.Pose;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.pedropathing.follower.Follower;
+
 import java.util.function.BooleanSupplier;
 
 public class RobotActions {
+    public static double SHOOTER_TOLERANCE_TPS = 50;
+    public static double SHOOTER_SPINUP_TIMEOUT_SECONDS = 3;
+    public static double SHOOTING_INTAKE_POWER = 1;
+    public static double SHOOTING_TRANSFER_POWER = 0.7;
 
-    // ── Goal position for distance calculations ────────────────────────────
-    private static Pose goal = new Pose(136, 136);
+    // Intake and transfer
 
-    public static void setGoal(Pose goalPose) {
-        goal = goalPose;
+    public static Action startIntake(double power) {
+        return startIntake(power, power);
     }
 
-
-
-    // ── Helper: current distance to goal (drivetrain pose) ─────────────────
-    public static double getDistanceToGoal() {
-        double robotX = robot.drivetrain.getPose().getX();
-        double robotY = robot.drivetrain.getPose().getY();
-        double dx = goal.getX() - robotX;
-        double dy = goal.getY() - robotY;
-        return Math.sqrt(dx * dx + dy * dy);
+    public static Action startIntake(double intakePower, double transferPower) {
+        return new InstantAction(() -> {
+            robot.intake.intakeElements(intakePower);
+            robot.transfer.loadElements(transferPower);
+        });
     }
 
+    public static Action stopIntake() {
+        return new InstantAction(() -> {
+            robot.intake.stop();
+            robot.transfer.stop();
+        });
+    }
 
-
-    // ── INTAKE ────────────────────────────────────────────────────────────
     public static Action intakeAction(double power, double timeSeconds) {
+        return intakeAction(power, power, timeSeconds);
+    }
+
+    public static Action intakeAction(double intakePower, double transferPower, double timeSeconds) {
         return new SequentialAction(
-                new InstantAction(() -> robot.intake.intakeElements(power)),
+                startIntake(intakePower, transferPower),
                 new SleepAction(timeSeconds),
-                new InstantAction(() -> robot.intake.stop())
+                stopIntake()
         );
     }
+
+    public static Action intakeAction(double intakePower, double intakeSeconds,
+                                      double transferPower, double transferSeconds) {
+        return new ParallelAction(
+                new SequentialAction(
+                        new InstantAction(() -> robot.intake.intakeElements(intakePower)),
+                        new SleepAction(intakeSeconds),
+                        new InstantAction(() -> robot.intake.stop())
+                ),
+                loaderAction(transferPower, transferSeconds)
+        );
+    }
+
+    public static Action startLoader(double power) {
+        return new InstantAction(() -> robot.transfer.loadElements(power));
+    }
+
+    public static Action stopLoader() {
+        return new InstantAction(() -> robot.transfer.stop());
+    }
+
     public static Action loaderAction(double power, double timeSeconds) {
         return new SequentialAction(
-                new InstantAction(() -> robot.transfer.loadElements(power)),
+                startLoader(power),
                 new SleepAction(timeSeconds),
-                new InstantAction(() -> robot.transfer.stop())
+                stopLoader()
         );
     }
 
-    // ── Shooter ────────────────────────────────────────────────────────────
+    // Shooter
 
-    // ── SHOOTER ───────────────────────────────────────────────────────────
-    // ── SHOOTER ───────────────────────────────────────────────────────────
-    private static double shotVelocity = 0;
+    public static Action startShooter(double targetVelocity) {
+        return new InstantAction(() -> robot.shooter.setPollenVelocity(targetVelocity));
+    }
+
+    public static boolean isReadyToShoot() {
+        return isReadyToShoot(Shooter.getIdealVelocity(3));
+    }
+
+    public static boolean isReadyToShoot(double targetVelocity) {
+        return targetVelocity > 0
+                && Math.abs(targetVelocity - robot.shooter.getPollenVelocity())
+                < SHOOTER_TOLERANCE_TPS;
+    }
+
+    public static Action waitForShooter(double targetVelocity) {
+        return waitForShooter(targetVelocity, SHOOTER_SPINUP_TIMEOUT_SECONDS);
+    }
+
+    public static Action waitForShooter(double targetVelocity, double timeoutSeconds) {
+        return new Action() {
+            private ElapsedTime timer;
+
+            @Override
+            public boolean run(TelemetryPacket packet) {
+                if (timer == null) timer = new ElapsedTime();
+                packet.put("Shooter target TPS", targetVelocity);
+                packet.put("Shooter actual TPS", robot.shooter.getPollenVelocity());
+                return !isReadyToShoot(targetVelocity) && timer.seconds() < timeoutSeconds;
+            }
+        };
+    }
+
+    public static Action stopShooter() {
+        return new InstantAction(() -> {
+            robot.gate.gateMovement(false);
+            robot.intake.stop();
+            robot.transfer.stop();
+            robot.shooter.setPollenVelocity(0);
+        });
+    }
 
     public static Action shootAction(double feedSeconds) {
-        return new SequentialAction(
-                new InstantAction(() -> {
-                    shotVelocity = Shooter.getIdealVelocity(3);
-                    robot.shooter.setPollenVelocity(Shooter.getIdealVelocity(3));
-                }),
-                new Actions.RunnableAction(() ->
-                        Math.abs(shotVelocity - robot.shooter.getPollenVelocity()) > 100),
-                // 3. open the gate and feed
-                new InstantAction(() -> {
-                    robot.pollenServo.pollenGate(true);
-                    robot.intake.intakeElements(1);
-                    robot.transfer.loadElements(1);
-                }),
-                new SleepAction(feedSeconds),
-                // 4. shut everything off
-                new InstantAction(() -> {
-                    robot.pollenServo.pollenGate(false);
-                    robot.intake.stop();
-                    robot.shooter.setPollenVelocity(0);
-                })
-        );
+        return shootAction(Shooter.getIdealVelocity(3), feedSeconds);
     }
+
+    public static Action shootAction(double targetVelocity, double feedSeconds) {
+        return new Action() {
+            private ElapsedTime timer;
+            private boolean feeding;
+            private boolean finished;
+
+            @Override
+            public boolean run(TelemetryPacket packet) {
+                if (finished) return false;
+                if (timer == null) {
+                    timer = new ElapsedTime();
+                    robot.gate.gateMovement(false);
+                    robot.intake.stop();
+                    robot.transfer.stop();
+                    robot.shooter.setPollenVelocity(targetVelocity);
+                }
+                packet.put("Shooter target TPS", targetVelocity);
+                packet.put("Shooter actual TPS", robot.shooter.getPollenVelocity());
+                packet.put("Shooter ready", isReadyToShoot(targetVelocity));
+                packet.put("Gate command", feeding ? "OPEN" : "CLOSED");
+                if (!feeding) {
+                    if (isReadyToShoot(targetVelocity)) {
+                        robot.gate.gateMovement(true);
+                        robot.intake.intakeElements(SHOOTING_INTAKE_POWER);
+                        robot.transfer.loadElements(SHOOTING_TRANSFER_POWER);
+                        packet.put("Gate command", "OPEN");
+                        timer.reset();
+                        feeding = true;
+                    } else if (timer.seconds() >= SHOOTER_SPINUP_TIMEOUT_SECONDS) {
+                        stop();
+                        return false;
+                    }
+                    return true;
+                }
+                if (timer.seconds() >= feedSeconds) {
+                    stop();
+                    return false;
+                }
+                return true;
+            }
+
+            private void stop() {
+                robot.gate.gateMovement(false);
+                robot.intake.stop();
+                robot.transfer.stop();
+                robot.shooter.setPollenVelocity(0);
+                finished = true;
+            }
+        };
+    }
+
+    // Gates
+
+    public static Action openGate() {
+        return new InstantAction(() -> robot.gate.gateMovement(true));
+    }
+
+    public static Action closeGate() {
+        return new InstantAction(() -> robot.gate.gateMovement(false));
+    }
+
+    public static Action openGateFor(double seconds) {
+        return new SequentialAction(openGate(), new SleepAction(seconds), closeGate());
+    }
+
+    public static Action openPollenGate() {
+        return new InstantAction(() -> robot.gate.pollenGate(true));
+    }
+
+    public static Action closePollenGate() {
+        return new InstantAction(() -> robot.gate.pollenGate(false));
+    }
+
+    public static Action openNectarGate() {
+        return new InstantAction(() -> robot.gate.nectarGate(true));
+    }
+
+    public static Action closeNectarGate() {
+        return new InstantAction(() -> robot.gate.nectarGate(false));
+    }
+
+    // Turret
+
+    public static Action centerTurret() {
+        return new InstantAction(() -> robot.centerTurret());
+    }
+
+    public static Action startTurretTracking() {
+        return new InstantAction(() -> robot.startTurretTracking());
+    }
+
+    public static Action stowTurret() {
+        return new InstantAction(() -> robot.stowTurret());
+    }
+
+    public static Action disableTurret() {
+        return new InstantAction(() -> robot.disableTurret());
+    }
+
+    public static Action waitForTurret() {
+        return waitForTurret(2.0);
+    }
+
+    public static Action waitForTurret(double timeoutSeconds) {
+        return new Action() {
+            private ElapsedTime timer;
+
+            @Override
+            public boolean run(TelemetryPacket packet) {
+                if (timer == null) timer = new ElapsedTime();
+                return !robot.turret.isReadyToShoot() && timer.seconds() < timeoutSeconds;
+            }
+        };
+    }
+
+    // Optional Limelight ball actions
+
+    public static double LL_HEIGHT = 10;
+    public static double LL_ANGLE = 20;
+    private static Pose ballPose;
 
     public static TrackBallsAction trackBalls(LimelightEx camera, boolean redAlliance,
                                               double timeoutSeconds, BooleanSupplier active) {
         return new TrackBallsAction(camera, robot.drivetrain, robot.intake,
                 redAlliance, timeoutSeconds, active);
     }
-    public static Action centerTurret() {
-        return new InstantAction(() -> robot.turret.centerLeftForward());
-    }
-
-    public static Action startTurretTracking() {
-        return new InstantAction(() -> robot.turret.resumeTracking());
-    }
-
-    public static Action stowTurret() {
-        return new InstantAction(() -> robot.turret.stow());
-    }
-
-    public static Action disableTurret() {
-        return new InstantAction(() -> robot.turret.disablePwm());
-    }
-    // --- GATE
-
-//    public static Action openGate() {return new InstantAction(() -> robot.gateServo.gateMovement(true));
-//    }
-//    public static Action openGateFor(double seconds) {
-//        return new SequentialAction(
-//                new InstantAction(() -> robot.gateServo.gateMovement(true)),    // open
-//                new SleepAction(seconds),                                       // wait (non-blocking)
-//                new InstantAction(() -> robot.gateServo.gateMovement(false))    // close
-//        );
-//    }
-//    public static Action closeGate() {
-//        return new InstantAction(() -> robot.gateServo.gateMovement(false));
-//    }
-
-//
-//    public static Action setTurretManual(double leftPosition, double rightPosition) {
-//        return new InstantAction(() -> robot.turret.setManual(leftPosition, rightPosition));
-//    }
-//
-//    public static Action waitForTurret() {
-//        return new Actions.RunnableAction(() -> !robot.turret.isReadyToShoot());
-//    }
-
-    // ── SHOOTER ───────────────────────────────────────────────────────────
-    // starts both flywheels with raw power
-//    public static Action startShooter(double power) {
-//        return new InstantAction(() -> robot.shooter.setVelo());
-//    }
-//    public static Action enableShooter() {
-//        return new InstantAction(() -> robot.shooter.enabled = true);
-//    }
-//
-//    public static Action disableShooter() {
-//        return new InstantAction(() -> {
-//            robot.shooter.enabled = false;
-//            robot.shooter.stop();
-//        });
-//    }
-//
-//    public static Action waitForShooter() {
-//        return new Actions.RunnableAction(() -> !robot.shooter.atSpeed());
-//    }
-
-    /**
-     * Far-range version — higher target velocity, longer spin-up window.
-     */
-    //public static Action startShooterFar(double power) {
-    //return startShooter(power);
-    //}
-
-    // separate power for each turret flywheel
-//    public static Action setFlywheelPower(double leftPower, double rightPower) {
-//        // lets auto give each turret flywheel a different raw power
-//        return new InstantAction(() -> robot.shooter.setPower(leftPower, rightPower));
-//    }
-
-//    public static Action runFlywheels(
-//            double leftPower,
-//            double rightPower,
-//            double timeSeconds
-//    ) {
-//        // turns both on waits then shuts both off
-//        return new SequentialAction(
-//                setFlywheelPower(leftPower, rightPower),
-//                new SleepAction(timeSeconds),
-//                new InstantAction(() -> robot.shooter.stop())
-//        );
-//    }
-
-    // ── STOP EVERYTHING ───────────────────────────────────────────────────
-//    public static Action stopAll() {
-//        return new InstantAction(() -> {
-//            robot.intake.stop();
-//            robot.shooter.stop();
-//            robot.turret.stow();
-//        });
-//    }
-    // ── BALL PICKUP (Limelight) ─────────────────────────────────────────
-    public static double LL_HEIGHT = 10;  // lens height minus ball-center height (in) ← MEASURE
-    public static double LL_ANGLE  = 20;  // how far the LL tilts down (deg)          ← MEASURE
-    private static Pose ballPose = null;  // shared between the ball actions
 
     private static Pose findBall(LimelightEx camera, int pipeline) {
         camera.update();

@@ -13,10 +13,10 @@ public class Shooter {
     private MotorEx nectarShooter;
     private MotorEx pollenShooter;
     // Tune these in FTC Dashboard
-    public static double kP = 1.26; // tune
-    public static double kI = .126;;
+    public static double kP = 11.2; // tune
+    public static double kI = 0.0;
     public static double kD = 0.0;
-    public static double kF = 12.6;
+    public static double kF = 11.2;
 
 
 

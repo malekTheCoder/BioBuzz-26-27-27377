@@ -10,19 +10,12 @@ public class NewPaths {
 
     private final Follower f;
 
-    public PathChain path1;
+    public PathChain preload;
 
-    public PathChain path2;
+    public PathChain intake;
 
-    public PathChain path3;
+    public PathChain shoot2;
 
-    public PathChain path4;
-
-    public PathChain path5;
-
-    public PathChain path6;
-
-    public PathChain path7;
 
     // =============================
     // POSES (ALL CENTRALIZED)
@@ -31,23 +24,17 @@ public class NewPaths {
     public static Pose P_START = new Pose(57.0, 9.0); // 9" = half an 18" robot, so it starts flush with the wall
 
     // Path 1 (shoot preload)
-    public static Pose P_SHOOT = new Pose(57.0, 23);
+    public static Pose P_SHOOT = new Pose(57.0, 16);
 
     // Path 2
-    public static Pose P_2 = new Pose(42.0, 11.0);
-
+    public static Pose CP_INTAKE = new Pose (35, 50.5);
     // Path 3
-    public static Pose P_3 = new Pose(11.0, 11.0); // front stops 3" from the edge (was 0"), still reaches all 4 balls
+    public static Pose P_INTAKE = new Pose(11.0, 11.0); // front stops 3" from the edge (was 0"), still reaches all 4 balls
+
+    public static Pose CP_SHOOT2 = new Pose (18, 78);
 
     // Path 4
-    public static Pose P_4 = new Pose(39.0, 120.0); // keeps path 4 clear of the side flower and the hives
-    public static Pose P_5 = new Pose(57.0, 120.0);
-
-    // Path 5
-    public static Pose P_6 = new Pose(48.0, 131.0); // closest to the top flower that clears it while turning
-
-    // Path 6 (intake on)
-    public static Pose P_7 = new Pose(58.2, 120);
+    public static Pose P_SHOOT2 = new Pose(55, 138); // keeps path 4 clear of the side flower and the hives
 
     public static double H_90 = Math.toRadians(90);
 
@@ -76,17 +63,14 @@ public class NewPaths {
 
         P_SHOOT = rotatePose(P_SHOOT);
 
-        P_2 = rotatePose(P_2);
+        CP_INTAKE = rotatePose(CP_INTAKE);
 
-        P_3 = rotatePose(P_3);
+        P_INTAKE = rotatePose(P_INTAKE);
 
-        P_4 = rotatePose(P_4);
+        CP_SHOOT2 = rotatePose(CP_SHOOT2);
 
-        P_5 = rotatePose(P_5);
+        P_SHOOT2 = rotatePose(P_SHOOT2);
 
-        P_6 = rotatePose(P_6);
-
-        P_7 = rotatePose(P_7);
 
         H_90 = rotateAngleRad(H_90);
         H_180 = rotateAngleRad(H_180);
@@ -106,44 +90,21 @@ public class NewPaths {
     public void autoNewPaths() {
 
         // ---------- Path 1 (shoot preload) ----------
-        path1 = f.pathBuilder()
+        preload = f.pathBuilder()
                 .addPath(new BezierLine(P_START, P_SHOOT))
                 .setConstantHeadingInterpolation(H_90)
                 .build();
 
         // ---------- Path 2 ----------
-        path2 = f.pathBuilder()
-                .addPath(new BezierLine(P_SHOOT, P_2))
+        intake = f.pathBuilder()
+                .addPath(new BezierCurve(P_SHOOT, CP_INTAKE, P_INTAKE))
                 .setLinearHeadingInterpolation(H_90, H_180)
                 .build();
 
         // ---------- Path 3 ----------
-        path3 = f.pathBuilder()
-                .addPath(new BezierLine(P_2, P_3))
-                .setConstantHeadingInterpolation(H_180)
-                .build();
-
-        // ---------- Path 4 ----------
-        path4 = f.pathBuilder()
-                .addPath(new BezierLine(P_3, P_4))
+        shoot2 = f.pathBuilder()
+                .addPath(new BezierCurve(P_INTAKE, CP_SHOOT2, P_SHOOT2))
                 .setLinearHeadingInterpolation(H_180, H_270)
-                .build();
-
-        // ---------- Path 5 ----------
-        path5 = f.pathBuilder()
-                .addPath(new BezierLine(P_4, P_5))
-                .setConstantHeadingInterpolation(H_270)
-                .build();
-
-        // ---------- Path 6 (intake on) ----------
-        path6 = f.pathBuilder()
-                .addPath(new BezierLine(P_5, P_6))
-                .setLinearHeadingInterpolation(H_270, H_90)
-                .build();
-
-        path7 = f.pathBuilder()
-                .addPath(new BezierLine(P_6, P_7))
-                .setLinearHeadingInterpolation(H_90, H_270)
                 .build();
     }
 }
