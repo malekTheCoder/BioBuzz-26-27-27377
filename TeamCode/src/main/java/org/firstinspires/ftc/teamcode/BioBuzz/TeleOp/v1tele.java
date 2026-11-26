@@ -181,14 +181,14 @@ public class v1tele extends LinearOpMode {
             double nectarVelo = nectarShooter.getVelocity();
 
             if (gamepad1.dpadUpWasPressed()) {
-                target += 30;
+                offset += 20;
             }
             if (gamepad1.dpadDownWasPressed()) {
-                target -= 30;
+                offset -= 20;
             }
+            target = Math.max(0, Math.min(MAX_TPS, 1600 + offset));
 
             if (gamepad1.left_bumper) {
-                target = Shooter.getIdealVelocity(3);
                 robot.shooter.setPollenVelocity(target);
 
                 if (Math.abs(target - pollenVelo) < TOLERANCE_TPS) {
