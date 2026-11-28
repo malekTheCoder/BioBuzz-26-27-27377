@@ -59,7 +59,9 @@ public class newAuto extends AbstractAuto {
                                 new ParallelAction(
                                         new InstantAction(() -> f.setMaxPower(.5)),
                                         new FollowPathAction(f, path.preload, true)
-                                )
+                                ),
+                                RobotActions.shootAction(3)
+
                         )
                 )
         );
@@ -70,6 +72,11 @@ public class newAuto extends AbstractAuto {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         new ParallelAction(
+                                new Actions.CallbackAction(
+                                      RobotActions.intakeAction(
+                                              .5 ,4),
+                                        path.intake, 0.01, 0, f, "intaking"
+                               ),
                                 new FollowPathAction(f, path.intake, true),
                                 new InstantAction(() -> f.setMaxPower(.7))
                         ),

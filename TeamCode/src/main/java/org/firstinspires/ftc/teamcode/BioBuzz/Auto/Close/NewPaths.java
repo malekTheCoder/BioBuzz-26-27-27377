@@ -21,10 +21,10 @@ public class NewPaths {
     // POSES (ALL CENTRALIZED)
     // =============================
 
-    public static Pose P_START = new Pose(57.0, 9.0); // 9" = half an 18" robot, so it starts flush with the wall
+    public static Pose P_START = new Pose(55.2, 9); // 9" = half an 18" robot, so it starts flush with the wall
 
     // Path 1 (shoot preload)
-    public static Pose P_SHOOT = new Pose(57.0, 16);
+    public static Pose P_SHOOT = new Pose(55.2, 16);
 
     // Path 2
     public static Pose CP_INTAKE = new Pose (35, 50.5);

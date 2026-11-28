@@ -56,24 +56,24 @@ public class RobotActions {
 
     // ── SHOOTER ───────────────────────────────────────────────────────────
     // ── SHOOTER ───────────────────────────────────────────────────────────
-    private static double shotVelocity = 0;
+    private static double shotVelocity = 1615;
 
     public static Action shootAction(double feedSeconds) {
         return new SequentialAction(
                 new InstantAction(() -> {
-                    robot.shooter.setPollenVelocity(1660);
+                    robot.shooter.setPollenVelocity(1620);
                 }),
                 new Actions.RunnableAction(() ->
-                        Math.abs(1600 - robot.shooter.getPollenVelocity()) > 100),
+                        Math.abs(1620 - robot.shooter.getPollenVelocity()) > 100),
                 new InstantAction(() -> {
-                    robot.pollenServo.pollenGate(true);
+                    robot.pollenServo.pollenGate(false);
                     robot.intake.intakeElements(1);
                     robot.transfer.loadElements(1);
                 }),
                 new SleepAction(feedSeconds),
                 // 4. shut everything off
                 new InstantAction(() -> {
-                    robot.pollenServo.pollenGate(false);
+                    robot.pollenServo.pollenGate(true);
                     robot.intake.stop();
                     robot.transfer.stop();
                     robot.shooter.setPollenVelocity(0);
