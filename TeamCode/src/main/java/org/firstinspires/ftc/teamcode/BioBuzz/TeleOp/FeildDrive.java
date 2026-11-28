@@ -46,9 +46,9 @@ public class FeildDrive extends LinearOpMode {
             if (gamepad1.shareWasPressed()) fieldCentric = !fieldCentric;
 
             // ---- Drive inputs ----
-            double y = gamepad1.left_stick_y;
-            double x = -gamepad1.left_stick_x;
-            double rx = -gamepad1.right_stick_x;
+            double y = -gamepad1.left_stick_y;
+            double x = gamepad1.left_stick_x;
+            double rx = gamepad1.right_stick_x;
 
             double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
